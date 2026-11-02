@@ -220,27 +220,35 @@ def pagerank_sistema_lineal(P, alpha=0.85, v=None):
 
 def pagerank_networkx(G, alpha=0.85, personalization=None, nodos=None):
     """
-    Calcula PageRank con NetworkX para comparar.
+    Calcula PageRank con NetworkX para comparar resultados.
 
-    Parameters
-    ----------
-    G               : nx.DiGraph
-    alpha           : float
-    personalization : dict or None — {nodo: peso} para PageRank personalizado.
-    nodos           : list[str]   — Orden de los nodos para devolver un array.
+    Las páginas sin enlaces de salida redistribuyen su puntuación
+    uniformemente entre todos los nodos, igual que en la matriz P
+    de la implementación propia.
 
-    Returns
-    -------
-    r : np.ndarray — Vector PageRank en el orden de `nodos`.
+    Devuelve las puntuaciones en el orden indicado por nodos.
     """
     if nodos is None:
         nodos = NODOS_ORDEN
 
-    pr = nx.pagerank(G, alpha=alpha, personalization=personalization,
-                     tol=1e-12, max_iter=10000)
+    # Distribución uniforme para páginas sin enlaces de salida.
+    n = G.number_of_nodes()
+    dangling_uniforme = {
+        nodo: 1.0 / n
+        for nodo in G.nodes()
+    }
 
-    return np.array([pr[n] for n in nodos])
+    pr = nx.pagerank(
+        G,
+        alpha=alpha,
+        personalization=personalization,
+        dangling=dangling_uniforme,
+        weight=None,
+        tol=1e-12,
+        max_iter=10000,
+    )
 
+    return np.array([pr[nodo] for nodo in nodos])
 
 def dict_personalizacion_nx(preferencia, nodos=None):
     """
