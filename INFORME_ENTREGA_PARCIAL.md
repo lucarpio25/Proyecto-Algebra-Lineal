@@ -270,47 +270,119 @@ Este resultado garantiza que controlar el residuo $\lVert \delta^{(k)} \rVert_1 
 
 ## 3. Desarrollo Práctico e Implementación Computacional
 
-### 3.1. Validación Preliminar con el Ejemplo de 3 Nodos del Docente
+### 3.1. Validación preliminar con el ejemplo de tres nodos del docente
 
-Para validar la corrección de nuestras funciones antes de procesar el grafo principal, se reprodujo el ejemplo canónico de 3 nodos ($A \to B, A \to C, B \to C, C \to A$) con $\alpha = 0.85$:
+Para comprobar los procedimientos de cálculo, se utiliza el ejemplo de la sección 6 del artículo del docente. La red contiene las aristas 1 → 2, 2 → 1, 2 → 3 y 3 → 1, todas de peso uno, con alfa = 0.50.
+
+Su matriz de transición es:
 
 $$
-P_3 = \begin{pmatrix} 0 & 0 & 1 \\ 0.5 & 0 & 0 \\ 0.5 & 1 & 0 \end{pmatrix}, \quad v = \begin{pmatrix} 1/3 \\ 1/3 \\ 1/3 \end{pmatrix}
+P_3 =
+\begin{pmatrix}
+0 & 1/2 & 1 \\
+1 & 0 & 0 \\
+0 & 1/2 & 0
+\end{pmatrix}.
 $$
 
-#### Resultados de la Validación Cruzada:
+#### Caso 1: reinicio uniforme
 
-| Nodo  | Método Iterativo (_Power Method_) | Solución Analítica $(I - \alpha P)^{-1} b$ | Referencia NetworkX |
-| :---: | :-------------------------------: | :----------------------------------------: | :-----------------: |
-| **A** |           **0.387790**            |                **0.387790**                |    **0.387790**     |
-| **B** |           **0.214811**            |                **0.214811**                |    **0.214811**     |
-| **C** |           **0.397400**            |                **0.397400**                |    **0.397400**     |
+Con el vector de reinicio uniforme:
 
-- **Iteraciones:** 45 pasos hasta tolerancia $10^{-10}$.
-- **Discrepancia Iterativo vs. Analítico:** $\lVert r_{\text{iter}} - r_{\text{lin}} \rVert_1 = 2.90 \times 10^{-11}$.
-- **Discrepancia Iterativo vs. NetworkX:** $\lVert r_{\text{iter}} - r_{\text{nx}} \rVert_1 = 2.94 \times 10^{-11}$.
-- **Residuo:** $\lVert r - \alpha P r - (1-\alpha)v \rVert_1 = 4.50 \times 10^{-11}$.
-- **Verificación estocástica:** $\sum r_i = 1.000000000000$; $\min r_i = 0.2148 > 0$.
+$$
+v = \frac{1}{3}
+\begin{pmatrix}
+1\\
+1\\
+1
+\end{pmatrix},
+$$
 
----
+la solución exacta es:
 
-### 3.2. Topología de la Red Simulada de 20 Nodos
+$$
+r = \frac{1}{39}
+\begin{pmatrix}
+15\\
+14\\
+10
+\end{pmatrix}.
+$$
 
-Se diseñó un grafo dirigido $G = (V, E)$ de $n = 20$ nodos y $|E| = 56$ aristas dirigidas, articulado en tres comunidades temáticas:
+#### Caso 2: reinicio personalizado en el nodo 3
 
-| Categoría      | Prefijo | Nodos         | Cantidad | Enlaces Salientes (Media) | Rol Estructural                                                                |
-| -------------- | :-----: | ------------- | :------: | :-----------------------: | ------------------------------------------------------------------------------ |
-| **Tecnología** |   `T`   | $T_1$ a $T_7$ |    7     |           2.85            | $T_1$ es portal dominante; $T_6$ actúa como puente hacia esports ($D_7$).      |
-| **Deportes**   |   `D`   | $D_1$ a $D_7$ |    7     |           2.85            | $D_1$ es portal principal; $D_2$ es nodo de alto flujo; $D_6$ nodo periférico. |
-| **Cultura**    |   `C`   | $C_1$ a $C_6$ |    6     |           2.50            | $C_1$ es portal central; subgrafo densamente interconectado.                   |
+Con el vector de reinicio:
 
-#### Reglas de Diseño Documentadas:
+$$
+v =
+\begin{pmatrix}
+0\\
+0\\
+1
+\end{pmatrix},
+$$
 
-1. **Densidad moderada:** Grado de salida controlado entre 2 y 5 aristas por nodo.
-2. **Homofilia temático-estructural:** 65 % de conexiones internas intra-categoría y 35 % de enlaces puente inter-categoría ($T_1 \to D_1, C_1$; $D_4 \to C_4$; $C_5 \to T_3$; $D_7 \to T_6, C_2$).
-3. **Ausencia de auto-enlaces:** $P_{ii} = 0 \quad \forall i$.
+la solución exacta es:
 
----
+$$
+r = \frac{1}{13}
+\begin{pmatrix}
+4\\
+2\\
+7
+\end{pmatrix}.
+$$
+
+Las puntuaciones de referencia son:
+
+| Nodo | Reinicio uniforme | Reinicio personalizado en el nodo 3 |
+|:---:|---:|---:|
+| 1 | 0.384615 | 0.307692 |
+| 2 | 0.358974 | 0.153846 |
+| 3 | 0.256410 | 0.538462 |
+
+En ambos casos, las componentes son no negativas, suman uno y satisfacen la ecuación de PageRank:
+
+$$
+r = 0.50P_3r + 0.50v.
+$$
+
+El script `ejecutar_experimentos.py` calcula ambos casos mediante el método iterativo, la solución directa del sistema lineal y NetworkX. Los resultados se contrastan con las soluciones exactas anteriores.
+
+Las verificaciones numéricas incluyen la diferencia respecto de la solución exacta, la suma de componentes, la no negatividad y el residuo. El número de iteraciones y las medidas de precisión se actualizarán al aplicar el criterio de parada definitivo.
+
+### 3.2. Topología de la red simulada de 20 nodos
+
+Se diseñó un grafo dirigido de 20 nodos y 56 aristas. Cada nodo representa una página web ficticia y cada arista representa un enlace desde una página de origen hacia una página de destino.
+
+La red se organiza en tres categorías temáticas:
+
+| Categoría | Prefijo | Nodos | Cantidad de nodos | Total de enlaces de salida | Promedio de enlaces de salida |
+|---|:---:|---|:---:|:---:|:---:|
+| Tecnología | T | T1 a T7 | 7 | 20 | 2.86 |
+| Deportes | D | D1 a D7 | 7 | 20 | 2.86 |
+| Cultura | C | C1 a C6 | 6 | 16 | 2.67 |
+| **Total** | | | **20** | **56** | **2.80** |
+
+Los nodos T1, D1 y C1 representan portales de sus respectivas categorías. También se incluyen páginas especializadas y conexiones entre categorías, como T6 → D7, D4 → C4 y C5 → T3.
+
+#### Reglas de construcción
+
+1. **Enlaces de salida:** cada nodo de la red base tiene entre 2 y 5 enlaces de salida. Todos los enlaces tienen el mismo peso.
+
+2. **Conexiones dentro de cada categoría:** 47 de los 56 enlaces conectan páginas de la misma categoría, equivalentes aproximadamente al 83.9 % del total.
+
+3. **Conexiones entre categorías:** 9 de los 56 enlaces conectan páginas de categorías diferentes, equivalentes aproximadamente al 16.1 % del total. Estas conexiones permiten que la navegación pase de un tema a otro.
+
+4. **Ausencia de autoenlaces:** ninguna página de la red base contiene un enlace hacia sí misma.
+
+5. **Páginas sin enlaces de salida:** la red base no contiene nodos sin salidas. En el experimento E8 se eliminan todos los enlaces de salida de D6 para estudiar este caso. Su columna en la matriz de transición se reemplaza por una distribución uniforme de 1/20 en cada componente.
+
+#### Procedencia de los datos
+
+Los nodos y enlaces fueron diseñados manualmente con fines académicos. La red permite estudiar diferencias entre el conteo de enlaces recibidos, PageRank uniforme y PageRank personalizado.
+
+Las páginas son ficticias y las conexiones no proceden de una extracción de sitios web reales. La definición completa de los nodos y enlaces está disponible en `codigo/red_definicion.py`, y las reglas de construcción se documentan en `datos/reglas_red.md`.
 
 ## 4. Resultados Preliminares y Comprobaciones Numéricas
 
@@ -371,74 +443,144 @@ $$
 
 ---
 
-### 4.4. Experimento E5: Análisis de Convergencia y Sensibilidad al Parámetro $\alpha$
+### 4.4. Experimento E5: convergencia y sensibilidad al parámetro alfa
 
-Se evaluó la recurrencia del Power Method con tolerancia de convergencia $\tau = 10^{-10}$:
+Se evaluó el método iterativo con alfa = 0.50, 0.85, 0.95 y 0.99, manteniendo la misma red, el reinicio uniforme y la distribución inicial uniforme.
 
-| Factor $\alpha$ | Iteraciones Requeridas | Residuo Final $\lVert \delta \rVert_1$ |    Composición del Top 5    | Fenómeno Analítico                                                            |
-| :-------------: | :--------------------: | :--------------------------: | :-------------------------: | :---------------------------------------------------------------------------- |
-|    **0.50**     |         **24**         |    $3.15 \times 10^{-11}$    | $[T_1, C_1, D_1, D_2, T_3]$ | Rápida convergencia; dominado por la estructura local y el reinicio uniforme. |
-|    **0.85**     |         **65**         |    $6.13 \times 10^{-11}$    | $[C_1, T_1, D_1, C_3, D_2]$ | Configuración canónica; balance óptimo entre difusión y reinicio.             |
-|    **0.95**     |        **101**         |    $8.06 \times 10^{-11}$    | $[C_1, T_1, C_3, D_1, D_2]$ | Crecimiento significativo del esfuerzo iterativo; $C_3$ desplaza a $D_1$.     |
-|    **0.99**     |        **128**         |    $8.23 \times 10^{-11}$    | $[C_1, C_3, T_1, D_1, C_6]$ | **Rank Reversal:** $C_3$ asciende al puesto 2 y $C_6$ entra al Top 5.         |
-
-#### Comprobación de la Tasa de Contracción Teórica:
-
-El número de iteraciones computadas satisface estrictamente la cota analítica esperada:
+En la implementación utilizada para estos resultados, el algoritmo se detiene cuando la diferencia en norma uno entre dos iteraciones consecutivas es menor que 10⁻¹⁰:
 
 $$
-k \approx \frac{\log(\tau)}{\log(\alpha)}
+\|x^{(k+1)}-x^{(k)}\|_1<10^{-10}.
 $$
 
-Al variar $\alpha$ de 0.50 a 0.99, las iteraciones pasan de 24 a 128, lo que representa un incremento computacional del **533 %**. A valores muy cercanos a 1, el caminante aleatorio explora trayectorias de gran profundidad, provocando que subgrafos cerrados como el cultural acumulen la mayor densidad de probabilidad.
+Los resultados obtenidos fueron:
 
----
+| Alfa | Iteraciones | Residuo final aproximado | Primeros cinco lugares |
+|:---:|:---:|:---:|---|
+| 0.50 | 24 | 3.15 × 10⁻¹¹ | T1, C1, D1, D2, T3 |
+| 0.85 | 65 | 6.13 × 10⁻¹¹ | C1, T1, D1, C3, D2 |
+| 0.95 | 101 | 8.06 × 10⁻¹¹ | C1, T1, C3, D1, D2 |
+| 0.99 | 128 | 8.23 × 10⁻¹¹ | C1, C3, T1, D1, C6 |
 
-### 4.5. Experimentos E6, E7 y E8: Sensibilidad ante Perturbaciones Topológicas
+#### Interpretación de las iteraciones
 
-|                       Exp.                        | Modificación Efectuada                      | Nodo más Afectado | Cambio Numérico |       ¿Cambia Top 5?        | Top 5 Resultante |
-| :-----------------------------------------------: | :------------------------------------------ | :---------------: | :-------------: | :-------------------------: | :--------------- |
-|                      **E6**                       | **Añadir 3 enlaces hacia portales:**        |
-| $(D_3 \to T_1)$, $(C_6 \to D_1)$, $(T_5 \to C_1)$ | $D_1$                                       |    $+0.011661$    |     **Sí**      | $[C_1, T_1, D_1, D_2, C_3]$ |
-|                      **E7**                       | **Quitar 3 enlaces de entrada a portales:** |
-| $(T_2 \to T_1)$, $(D_3 \to D_1)$, $(C_3 \to C_1)$ | $C_6$                                       |    $+0.036652$    |     **Sí**      | $[C_6, C_3, T_1, D_2, C_4]$ |
-|                      **E8**                       | **Dangling Node (D6 sin salidas):**         |
-|   Se eliminan $(D_6 \to D_2)$ y $(D_6 \to D_7)$   | $D_2$                                       |    $-0.015135$    |     **Sí**      | $[C_1, T_1, C_3, D_1, T_3]$ |
+En esta red y bajo el criterio de parada utilizado, el número de iteraciones aumentó al incrementar alfa. Entre alfa = 0.50 y alfa = 0.99, pasó de 24 a 128, lo que representa un aumento aproximado del 433.3 %.
 
-- **Efecto de Dangling Node en E8:** Al quedar $D_6$ sin salidas, su columna se sustituye por el vector estocástico uniforme $1/20 = 0.05$. El nodo $D_2$, que recibía el 50 % directo del flujo de $D_6$, experimenta una pérdida drástica de $-0.0151$, provocando su **expulsión inmediata del Top 5** y permitiendo el ingreso de $T_3$.
+Este comportamiento es compatible con la cota de contracción: cuando alfa se acerca a uno, la reducción garantizada del error por iteración es más lenta. Sin embargo, dicha cota no determina exactamente el número de iteraciones observado, que también depende de la red, la distribución inicial y el criterio de parada.
 
----
+#### Cambios en el ranking
 
-## 5. Guion Estructurado del Video Final (10 Minutos)
+Con alfa = 0.50, T1 ocupa el primer lugar. Para los otros valores evaluados, C1 pasa a la primera posición. Con alfa = 0.99, C3 asciende al segundo lugar y C6 entra en los primeros cinco.
 
-El guion ha sido planificado rigurosamente respetando la ventana reglamentaria de $10 \pm 1$ minutos, con intervenciones sustantivas de todos los miembros del equipo:
+Al aumentar alfa, se da mayor peso al seguimiento de enlaces y menor peso a los reinicios. Esto puede modificar las puntuaciones y el orden de las páginas. No implica que un valor de alfa sea universalmente mejor que otro.
 
-|    Intervalo     | Bloque Temático                | Contenido Específico y Recursos Visuales                                                                                                                                                                                                |     Responsable      |
-| :--------------: | :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------: |
-| **0:00 – 1:00**  | **Introducción y Pregunta**    | Título, integrantes y problema de ordenamiento en la Web. Pregunta de investigación, objetivos y alcance de la red de 20 páginas. <br>_Apoyo:_ Diapositiva institucional y gráfico conceptual del problema.                             |  **Luciana Carpio**  |
-| **1:00 – 2:00**  | **Modelado y Matriz $P$**      | Del grafo a la matriz estocástica $P$. Tratamiento formal de nodos sin salidas (_dangling nodes_). Parámetro $\alpha$ y vector de reinicio $v$. <br>_Apoyo:_ Visualización de la matriz $P$ y fórmulas estocásticas.                    |  **Sofía Briceño**   |
-| **2:00 – 3:00**  | **Tres Formulaciones**         | Demostración analítica de la equivalencia entre punto fijo, sistema lineal $(I - \alpha P)r = (1-\alpha)v$ y vector propio de la matriz Google $G$. Existencia y unicidad. <br>_Apoyo:_ Deducción algebraica en lámina clara.           |  **Sofía Briceño**   |
-| **3:00 – 4:00**  | **Convergencia y Cota**        | Análisis del factor de contracción $\alpha$, cota de error $\alpha^k$ y certificado formal mediante residuo $\lVert r - r^{\ast} \rVert_1 \le \frac{1}{1-\alpha} \lVert \delta \rVert_1$. <br>_Apoyo:_ Demostración de Neumann y esquema de contracción.         |  **Sofía Briceño**   |
-| **4:00 – 5:30**  | **Verificación Experimental**  | Comprobación del ejemplo de 3 nodos del docente. Contraste numérico: método propio vs. sistema lineal vs. NetworkX. Estocasticidad y residuos. <br>_Apoyo:_ Tabla de convergencia y código Python en pantalla.                          | **Marianela Usnayo** |
-| **5:30 – 6:45**  | **Rankings y Personalización** | Conteo de enlaces recibidos vs. PageRank uniforme vs. personalizado (Tecnología y Deportes). Desempate analítico y evolución del Top 5. <br>_Apoyo:_ `fig6_barras_rankings.png` y mapas de red `fig2`, `fig3`, `fig4`.                  |  **Manuel Sialer**   |
-| **6:45 – 8:00**  | **Sensibilidad y Redes**       | Comportamiento con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$, número de iteraciones y _rank reversal_. Perturbaciones de enlaces y caso de _dangling node_. <br>_Apoyo:_ `fig5_convergencia_alpha.png`, `fig7_sensibilidad.png` y `fig8`. |  **Manuel Sialer**   |
-| **8:00 – 9:00**  | **Interpretación Matemática**  | Significado de la relevancia estacionaria. Por qué coinciden o difieren las clasificaciones. Supuestos teóricos de la cadena de Markov. <br>_Apoyo:_ Diagrama comparativo de nociones de autoridad.                                     | **Marianela Usnayo** |
-| **9:00 – 10:00** | **Conclusiones y Cierre**      | Síntesis de hallazgos, limitaciones del modelo (no semántico), enlaces al repositorio de GitHub y créditos finales. <br>_Apoyo:_ Repositorio proyectado y referencias IEEE.                                                             |  **Luciana Carpio**  |
+#### Precisión y ajuste pendiente
 
----
+Una diferencia pequeña entre iteraciones no equivale directamente al mismo límite de error respecto de la solución de equilibrio.
 
-## 6. Registro de Contribuciones Individuales
+Para una aproximación x, el residuo es:
 
-De conformidad con los criterios de evaluación de la entrega parcial, se certifica el aporte concreto y verificable de cada integrante:
+$$
+\rho(x)=\|x-\alpha Px-(1-\alpha)v\|_1.
+$$
 
-| Integrante                         | Tareas Específicas Realizadas                                                                                                                                                                                                                                                                                                           | Evidencias en Repositorio                                            |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Sofía Catherine Briceño Rosado** | • Deducción de las 3 formulaciones matemáticas.<br>• Demostración analítica de existencia y unicidad con series de Neumann.<br>• Formulación de la cota de contracción $\alpha^k$ y certificado del residuo.<br>• Redacción de la fundamentación teórica del informe.                                                                   | Sección 2 del informe; borradores teóricos en `documentos/`.         |
-| **Luciana Carpio Cárdenas**        | • Planteamiento del problema, pregunta central y alcance.<br>• Redacción y estandarización del archivo `README.md` y `requirements.txt`.<br>• Estructuración y gobernanza de directorios del repositorio.<br>• Documentación de las reglas de construcción de la red junto a Manuel.                                                    | `README.md`, `requirements.txt`, `datos/reglas_red.md`.              |
-| **Manuel Sialer**                  | • Construcción formal del grafo de 20 nodos y matriz de transición $P$.<br>• Programación de `red_definicion.py`, `pagerank_core.py`, `ejecutar_experimentos.py`.<br>• Ejecución automatizada de los experimentos E1 a E8 y exportación de CSVs.<br>• Desarrollo del script de visualización científica (`generar_visualizaciones.py`). | Scripts en `codigo/`, datos en `resultados/`, figuras en `figuras/`. |
-| **Marianela Usnayo Gutierrez**     | • Validación cruzada con el ejemplo de 3 nodos del docente.<br>• Control de calidad de los datos (suma de componentes, no negatividad, residuo $< 10^{-10}$).<br>• Comparación numérica sistemática contra NetworkX y solución lineal.<br>• Planificación y estructuración temporal del guion audiovisual.                              | Tablas de verificación en `resultados/`; Sección 5 del informe.      |
+La cota del error viene dada por:
 
----
+$$
+\|x-r\|_1\leq\frac{\rho(x)}{1-\alpha}.
+$$
+
+Por tanto, los residuos de la tabla no certifican una tolerancia de error de 10⁻¹⁰ para todos los valores de alfa.
+
+Se actualizará el criterio de parada para exigir que el cociente entre el residuo y 1 − alfa sea menor o igual que la tolerancia elegida. Después se repetirán los experimentos y se actualizarán las iteraciones, los residuos, los certificados de error y las figuras correspondientes.
+
+### 4.5. Experimentos E6, E7 y E8: sensibilidad ante cambios en los enlaces
+
+Se estudió cómo cambian las puntuaciones y el ranking al modificar conexiones de la red. En los tres experimentos se utilizó alfa = 0.85 y reinicio uniforme.
+
+Cada modificación se aplicó por separado sobre la red original. Después de añadir o eliminar enlaces, se reconstruyó la matriz de transición para que cada columna continuara sumando uno.
+
+Los cambios de puntuación se calcularon restando el resultado de la red original al de la red modificada.
+
+| Experimento | Modificación | Nodo con mayor cambio absoluto | Cambio de puntuación | Primeros cinco lugares |
+|---|---|:---:|---:|---|
+| E6 | Añadir D3 → T1, C6 → D1 y T5 → C1 | D1 | +0.011661 | C1, T1, D1, D2, C3 |
+| E7 | Eliminar T2 → T1, D3 → D1 y C3 → C1 | C6 | +0.036652 | C6, C3, T1, D2, C4 |
+| E8 | Eliminar D6 → D2 y D6 → D7, dejando D6 sin salidas | D2 | −0.015135 | C1, T1, C3, D1, T3 |
+
+Las cifras corresponden a la implementación actual y se revisarán al repetir los experimentos con el criterio de parada definitivo.
+
+#### E6: adición de enlaces
+
+Al añadir los tres enlaces, D1 presenta el mayor cambio absoluto de puntuación, con un aumento aproximado de 0.011661.
+
+Los integrantes de los primeros cinco lugares se mantienen, pero cambia su orden: D2 pasa del quinto al cuarto puesto y C3 baja del cuarto al quinto.
+
+Este caso permite distinguir entre un cambio de posiciones y un cambio en las páginas que componen los primeros cinco lugares.
+
+#### E7: eliminación de enlaces
+
+Al eliminar los tres enlaces seleccionados, C6 presenta el mayor cambio absoluto, con un aumento aproximado de 0.036652, y pasa al primer lugar.
+
+Eliminar un enlace también modifica la proporción de puntuación que la página de origen reparte entre sus destinos restantes. Por ello, los efectos pueden extenderse a páginas que no participan directamente en los enlaces eliminados.
+
+#### E8: página sin enlaces de salida
+
+Se eliminaron las dos salidas de D6: D6 → D2 y D6 → D7. Su columna en la matriz de transición se reemplazó por una distribución uniforme de 1/20 = 0.05 para cada página.
+
+Antes de la modificación, D6 repartía por igual su contribución de seguimiento de enlaces entre D2 y D7. Después, esa contribución se distribuye entre las 20 páginas.
+
+D2 presenta una disminución aproximada de 0.015135 y sale de los primeros cinco lugares, mientras que T3 ingresa. También cambia el orden de C3 y D1.
+
+#### Interpretación general
+
+Los experimentos muestran que modificar enlaces puede cambiar tanto las puntuaciones como las posiciones del ranking. El efecto depende de las páginas involucradas y de sus conexiones con el resto de la red.
+
+Estos resultados corresponden a los cambios específicos evaluados. No permiten afirmar que añadir un enlace siempre mejore la posición de una página ni que eliminarlo perjudique a todas las páginas relacionadas.
+
+## 5. Guion del video final (10 minutos)
+
+El video tendrá una duración aproximada de 10 minutos, con una tolerancia de un minuto por exceso o defecto. Este tiempo incluye la identificación inicial y las referencias finales.
+
+Todos los integrantes explicarán una parte sustantiva del proyecto. Se utilizarán ejemplos, tablas y gráficos legibles para conectar los conceptos matemáticos con los resultados.
+
+| Intervalo | Bloque | Contenido y recursos visuales | Responsable |
+|---|---|---|---|
+| 0:00–1:00 | Introducción y pregunta | Presentar el título, integrantes, problema, pregunta, objetivo y alcance. Explicar por qué contar enlaces puede producir una clasificación distinta de PageRank. Apoyo: diapositiva inicial y ejemplo sencillo. | Luciana Carpio |
+| 1:00–2:00 | Red y matriz de transición | Explicar cómo los enlaces se convierten en probabilidades, por qué las columnas de P suman uno y cómo se tratan las páginas sin salidas. Introducir alfa y el vector de reinicio v. Apoyo: red de tres nodos y su matriz. | Sofía Briceño |
+| 2:00–3:00 | Tres formulaciones | Relacionar la ecuación de equilibrio, el sistema lineal y el vector propio de la matriz Google asociado al valor propio uno. Explicar brevemente por qué la solución existe y es única. Apoyo: fórmulas conectadas paso a paso. | Sofía Briceño |
+| 3:00–4:00 | Convergencia y precisión | Explicar las actualizaciones sucesivas y la contracción. Distinguir residuo y error, y presentar el certificado: error menor o igual que residuo dividido entre 1 − alfa. Explicar el criterio de parada. Apoyo: esquema de iteraciones y ejemplo numérico. | Sofía Briceño |
+| 4:00–5:30 | Verificación de resultados | Mostrar el ejemplo de tres nodos del docente y comparar el método iterativo, la solución directa y NetworkX. Presentar suma de componentes, no negatividad, residuo y certificado de error. Apoyo: tabla breve de comprobaciones. | Marianela Usnayo |
+| 5:30–6:45 | Rankings y personalización | Comparar el conteo de enlaces, PageRank uniforme y las preferencias por tecnología y deportes. Explicar el reparto del 70 % de reinicio entre las páginas favoritas y del 30 % entre las restantes. Apoyo: tabla de primeros cinco lugares y gráficos de la red. | Manuel Sialer |
+| 6:45–8:00 | Cambios de alfa y enlaces | Mostrar cómo cambian las iteraciones y el ranking con alfa = 0.50, 0.85, 0.95 y 0.99. Resumir los experimentos de adición y eliminación de enlaces y el caso de una página sin salidas. Apoyo: gráficos de convergencia y tabla de sensibilidad. | Manuel Sialer |
+| 8:00–9:00 | Interpretación | Explicar las diferencias observadas entre clasificaciones. Distinguir cambios de puntuación, cambios de posición y cambios en la composición de los primeros cinco lugares. Apoyo: resultados seleccionados de los experimentos. | Marianela Usnayo |
+| 9:00–10:00 | Conclusiones y cierre | Resumir los hallazgos y las limitaciones de trabajar con una red simulada. Aclarar que PageRank mide relevancia según el modelo, no calidad o veracidad del contenido. Mostrar referencias principales y enlace al repositorio. | Luciana Carpio |
+
+Antes de grabar, se actualizarán las tablas y figuras después de corregir el criterio de parada y repetir los experimentos. Las cifras mostradas en el video deberán coincidir con las publicadas en el informe y el repositorio.
+
+Las demostraciones completas estarán disponibles en el informe. En el video se presentarán sus pasos esenciales, acompañados de ejemplos que permitan entender su función dentro del proyecto.
+
+## 6. Registro de contribuciones individuales
+
+La siguiente tabla registra los aportes de cada integrante y señala los archivos donde pueden revisarse. Las verificaciones deberán actualizarse después de corregir el criterio de parada y repetir los experimentos.
+
+| Integrante | Contribuciones | Evidencias en el repositorio |
+|---|---|---|
+| **Sofía Catherine Briceño Rosado** | Desarrollo de las tres formulaciones de PageRank: punto fijo, sistema lineal y vector propio. Justificación de existencia y unicidad mediante la serie de Neumann. Desarrollo de la contracción, la cota de error y el certificado basado en el residuo. | Sección 2 del informe y fundamentos matemáticos del `README.md`. |
+| **Luciana Carpio Cárdenas** | Planteamiento del problema, pregunta de investigación, objetivo y alcance. Organización del repositorio y revisión de la documentación. Documentación de las reglas de construcción de la red junto con Manuel. | `README.md`, sección 1 del informe y `datos/reglas_red.md`. |
+| **Manuel Sialer** | Construcción de la red de 20 nodos. Programación de la matriz de transición y los procedimientos de cálculo. Implementación y ejecución de los experimentos E1–E8. Exportación de tablas y generación de gráficos. | `codigo/red_definicion.py`, `codigo/pagerank_core.py`, `codigo/ejecutar_experimentos.py`, `codigo/generar_visualizaciones.py`, `resultados/` y `figuras/`. |
+| **Marianela Usnayo Gutierrez** | Revisión del ejemplo de tres nodos y de las comprobaciones numéricas. Comparación entre el método iterativo, la solución directa y NetworkX. Planificación del video y distribución de tiempos e intervenciones. | Procedimientos de verificación en `codigo/`, tablas en `resultados/` y sección 5 del informe. |
+
+### Actividades compartidas
+
+- Revisar que las fórmulas, el código, las tablas y los gráficos sean coherentes.
+- Actualizar los resultados después de corregir el criterio de parada.
+- Comprobar la ejecución del proyecto siguiendo las instrucciones del README.
+- Interpretar los resultados y formular las conclusiones y limitaciones.
+- Participar en el video y comprender el razonamiento general del proyecto.
+- Prepararse para responder preguntas sobre los conceptos, procedimientos y resultados.
+
+Antes de cada entrega, el registro se actualizará con los aportes efectivamente realizados. Las responsabilidades pendientes no se presentarán como tareas completadas.
 
 ## 7. Plan de Trabajo y Cronograma hacia la Entrega Final
 
@@ -461,6 +603,7 @@ El plan de trabajo restante cubre las semanas 13 y 14 de acuerdo con el calendar
 En estricto cumplimiento del numeral 9 de las indicaciones del curso:
 
 - **Herramientas empleadas:** Antigravity (Google DeepMind) con modelos Claude Opus 4.6 y Gemini Flash.
+- - **ChatGPT:** apoyo en la revisión de la coherencia entre el informe y el código, para identificar inconsistencias y proponer correcciones puntuales en la documentación. 
 - **Finalidad:** Apoyo en la automatización de la sintaxis de scripts en Python (estructuración de bucles de graficación con Matplotlib), formato de tablas en Markdown y corrección de estilo de la documentación.
 - **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Los resultados numéricos satisfacen estrictamente los criterios de estocasticidad ($\sum r_i = 1$) y residuos de máquina ($< 10^{-10}$). Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
 
