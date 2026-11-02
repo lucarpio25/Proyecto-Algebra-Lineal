@@ -1,0 +1,4 @@
+﻿Modificación,Nodo_más_afectado,Cambio_puntuación,Cambia_top5,Top5_antes,Top5_después
+"Añadir [('D3', 'T1'), ('C6', 'D1'), ('T5', 'C1')]",D1,+0.011661,Sí,"['C1', 'T1', 'D1', 'C3', 'D2']","['C1', 'T1', 'D1', 'D2', 'C3']"
+"Quitar [('T2', 'T1'), ('D3', 'D1'), ('C3', 'C1')]",C6,+0.036652,Sí,"['C1', 'T1', 'D1', 'C3', 'D2']","['C6', 'C3', 'T1', 'D2', 'C4']"
+D6 sin enlaces de salida (dangling),D2,-0.015135,Sí,"['C1', 'T1', 'D1', 'C3', 'D2']","['C1', 'T1', 'C3', 'D1', 'T3']"
