@@ -506,152 +506,197 @@ def experimento_E6_E7_E8(G_original, P_original):
     print("=" * 65)
 
     alpha = 0.85
+    tolerancia = 1e-10
     n = len(NODOS_ORDEN)
     v = vector_reinicio_uniforme(n)
 
-    # Resultado base
-    r_base, _, _ = pagerank_iterativo(P_original, alpha, v)
-
-    modificaciones = []
-
-    # ------------------------------------------------------------------
-    # E6. AÑADIR ENLACES
-    # ------------------------------------------------------------------
-    print("\n--- E6: Añadir enlaces ---")
-    enlaces_nuevos = [('D3', 'T1'), ('C6', 'D1'), ('T5', 'C1')]
+    # Cada modificación parte de la red original.
+    enlaces_nuevos = [
+        ('D3', 'T1'),
+        ('C6', 'D1'),
+        ('T5', 'C1'),
+    ]
+    enlaces_quitar = [
+        ('T2', 'T1'),
+        ('D3', 'D1'),
+        ('C3', 'C1'),
+    ]
 
     G_add = G_original.copy()
     G_add.add_edges_from(enlaces_nuevos)
-    P_add = construir_matriz_P(G_add)
-    r_add, _, _ = pagerank_iterativo(P_add, alpha, v)
-
-    cambio = r_add - r_base
-    idx_max_cambio = np.argmax(np.abs(cambio))
-    nodo_mas_afectado = NODOS_ORDEN[idx_max_cambio]
-
-    # Top 5 comparado
-    top5_base = [NODOS_ORDEN[i] for i in np.argsort(-r_base)[:5]]
-    top5_add  = [NODOS_ORDEN[i] for i in np.argsort(-r_add)[:5]]
-    cambia_top5 = top5_base != top5_add
-
-    print(f"  Enlaces añadidos: {enlaces_nuevos}")
-    print(f"  Nodo más afectado: {nodo_mas_afectado} (cambio: {cambio[idx_max_cambio]:+.6f})")
-    print(f"  Top 5 base : {top5_base}")
-    print(f"  Top 5 nuevo: {top5_add}")
-    print(f"  ¿Cambia top 5? {'Sí' if cambia_top5 else 'No'}")
-
-    modificaciones.append({
-        'Modificación': f'Añadir {enlaces_nuevos}',
-        'Nodo_más_afectado': nodo_mas_afectado,
-        'Cambio_puntuación': f"{cambio[idx_max_cambio]:+.6f}",
-        'Cambia_top5': 'Sí' if cambia_top5 else 'No',
-        'Top5_antes': str(top5_base),
-        'Top5_después': str(top5_add),
-    })
-
-    # ------------------------------------------------------------------
-    # E7. QUITAR ENLACES
-    # ------------------------------------------------------------------
-    print("\n--- E7: Quitar enlaces ---")
-    enlaces_quitar = [('T2', 'T1'), ('D3', 'D1'), ('C3', 'C1')]
 
     G_rm = G_original.copy()
     G_rm.remove_edges_from(enlaces_quitar)
-    P_rm = construir_matriz_P(G_rm)
-    r_rm, _, _ = pagerank_iterativo(P_rm, alpha, v)
-
-    cambio = r_rm - r_base
-    idx_max_cambio = np.argmax(np.abs(cambio))
-    nodo_mas_afectado = NODOS_ORDEN[idx_max_cambio]
-
-    top5_rm = [NODOS_ORDEN[i] for i in np.argsort(-r_rm)[:5]]
-    cambia_top5 = top5_base != top5_rm
-
-    print(f"  Enlaces quitados: {enlaces_quitar}")
-    print(f"  Nodo más afectado: {nodo_mas_afectado} (cambio: {cambio[idx_max_cambio]:+.6f})")
-    print(f"  Top 5 base : {top5_base}")
-    print(f"  Top 5 nuevo: {top5_rm}")
-    print(f"  ¿Cambia top 5? {'Sí' if cambia_top5 else 'No'}")
-
-    modificaciones.append({
-        'Modificación': f'Quitar {enlaces_quitar}',
-        'Nodo_más_afectado': nodo_mas_afectado,
-        'Cambio_puntuación': f"{cambio[idx_max_cambio]:+.6f}",
-        'Cambia_top5': 'Sí' if cambia_top5 else 'No',
-        'Top5_antes': str(top5_base),
-        'Top5_después': str(top5_rm),
-    })
-
-    # ------------------------------------------------------------------
-    # E8. DANGLING NODE — quitar TODAS las salidas de D6
-    # ------------------------------------------------------------------
-    print("\n--- E8: Dangling node (D6 sin salidas) ---")
 
     G_dang = G_original.copy()
-    salidas_D6 = list(G_dang.successors('D6'))
-    print(f"  Enlaces eliminados de D6: {[('D6', s) for s in salidas_D6]}")
-    G_dang.remove_edges_from([('D6', s) for s in salidas_D6])
+    salidas_D6 = [
+        ('D6', destino)
+        for destino in G_dang.successors('D6')
+    ]
+    G_dang.remove_edges_from(salidas_D6)
 
-    P_dang = construir_matriz_P(G_dang)
-    r_dang, _, _ = pagerank_iterativo(P_dang, alpha, v)
+    escenarios = {
+        'base': ('Red original', G_original),
+        'add': (f'Añadir {enlaces_nuevos}', G_add),
+        'remove': (f'Quitar {enlaces_quitar}', G_rm),
+        'dangling': ('D6 sin enlaces de salida (dangling)', G_dang),
+    }
 
-    # Verificar que la columna de D6 en P es uniforme (dangling node)
-    idx_D6 = NODOS_ORDEN.index('D6')
-    print(f"  Columna D6 de P (debe ser 1/20 = 0.05 en cada fila):")
-    print(f"    Min: {P_dang[:, idx_D6].min():.4f}, Max: {P_dang[:, idx_D6].max():.4f}")
+    resultados = {}
+    comprobaciones = []
 
-    cambio = r_dang - r_base
-    idx_max_cambio = np.argmax(np.abs(cambio))
-    nodo_mas_afectado = NODOS_ORDEN[idx_max_cambio]
+    for clave, (descripcion, grafo) in escenarios.items():
+        print(f"\n--- {descripcion} ---")
 
-    top5_dang = [NODOS_ORDEN[i] for i in np.argsort(-r_dang)[:5]]
-    cambia_top5 = top5_base != top5_dang
+        P = construir_matriz_P(grafo)
 
-    print(f"  Nodo más afectado: {nodo_mas_afectado} (cambio: {cambio[idx_max_cambio]:+.6f})")
-    print(f"  Top 5 base     : {top5_base}")
-    print(f"  Top 5 dangling : {top5_dang}")
-    print(f"  ¿Cambia top 5? {'Sí' if cambia_top5 else 'No'}")
+        if clave == 'base':
+            if not np.allclose(
+                P, P_original, rtol=0, atol=1e-14
+            ):
+                raise ValueError(
+                    "P_original no coincide con la matriz de la red base."
+                )
 
-    verificar_resultado(r_dang, P_dang, alpha, v, "Dangling node D6")
+        if clave == 'dangling':
+            idx_D6 = NODOS_ORDEN.index('D6')
 
-    modificaciones.append({
-        'Modificación': 'D6 sin enlaces de salida (dangling)',
-        'Nodo_más_afectado': nodo_mas_afectado,
-        'Cambio_puntuación': f"{cambio[idx_max_cambio]:+.6f}",
-        'Cambia_top5': 'Sí' if cambia_top5 else 'No',
-        'Top5_antes': str(top5_base),
-        'Top5_después': str(top5_dang),
-    })
+            if not np.allclose(
+                P[:, idx_D6], 1.0 / n, rtol=0, atol=1e-14
+            ):
+                raise ValueError(
+                    "La columna de D6 no es uniforme."
+                )
 
-    # Tabla de todas las modificaciones
+            print(f"  Enlaces eliminados de D6: {salidas_D6}")
+            print(f"  Redistribución por página: {1.0 / n:.4f}")
+
+        # Calcular por los tres procedimientos.
+        r_iter, iters, _ = pagerank_iterativo(
+            P, alpha, v, tol=tolerancia
+        )
+        r_lin = pagerank_sistema_lineal(P, alpha, v)
+        r_nx = pagerank_networkx(grafo, alpha)
+
+        print(f"  Iteraciones del método propio: {iters}")
+
+        metodos = {
+            'Iterativo': r_iter,
+            'Sistema lineal': r_lin,
+            'NetworkX': r_nx,
+        }
+
+        for nombre, r in metodos.items():
+            residuo = np.linalg.norm(
+                r - alpha * (P @ r) - (1 - alpha) * v,
+                ord=1,
+            )
+
+            verificado = verificar_resultado(
+                r,
+                P,
+                alpha,
+                v,
+                nombre=f"{clave} – {nombre}",
+                tol=tolerancia,
+            )
+
+            comprobaciones.append({
+                'Escenario': clave,
+                'Metodo': nombre,
+                'Suma': float(np.sum(r)),
+                'Minimo': float(np.min(r)),
+                'Residuo': float(residuo),
+                'Cota_error': float(residuo / (1 - alpha)),
+                'Tolerancia': tolerancia,
+                'Diferencia_con_lineal': float(
+                    np.linalg.norm(r - r_lin, ord=1)
+                ),
+                'Verificado': verificado,
+            })
+
+        resultados[clave] = r_iter
+
+    df_verificaciones = pd.DataFrame(
+        comprobaciones
+    ).set_index(['Escenario', 'Metodo'])
+
+    guardar_csv(
+        df_verificaciones,
+        'E6_E7_E8_verificaciones.csv',
+    )
+
+    if not all(fila['Verificado'] for fila in comprobaciones):
+        raise RuntimeError(
+            "Algún resultado de E6–E8 no superó la verificación. "
+            "Revisar E6_E7_E8_verificaciones.csv."
+        )
+
+    # Comparar cada modificación con la red original.
+    r_base = resultados['base']
+    top5_base = [
+        NODOS_ORDEN[i]
+        for i in np.argsort(-r_base)[:5]
+    ]
+
+    modificaciones = []
+
+    for clave in ['add', 'remove', 'dangling']:
+        r = resultados[clave]
+        cambio = r - r_base
+        idx_max = np.argmax(np.abs(cambio))
+
+        top5 = [
+            NODOS_ORDEN[i]
+            for i in np.argsort(-r)[:5]
+        ]
+
+        cambia_orden = top5 != top5_base
+        cambia_composicion = set(top5) != set(top5_base)
+
+        modificaciones.append({
+            'Modificación': escenarios[clave][0],
+            'Nodo_más_afectado': NODOS_ORDEN[idx_max],
+            'Cambio_puntuación': float(cambio[idx_max]),
+            'Cambia_top5': 'Sí' if cambia_orden else 'No',
+            'Cambia_composicion_top5': (
+                'Sí' if cambia_composicion else 'No'
+            ),
+            'Top5_antes': str(top5_base),
+            'Top5_después': str(top5),
+        })
+
     df = pd.DataFrame(modificaciones)
-    print(f"\nResumen de sensibilidad:")
-    print(df.to_string(index=False))
-    guardar_csv(df.set_index('Modificación'), 'E6_E7_E8_sensibilidad.csv')
 
-    # Tabla detallada de puntuaciones
+    print("\nResumen de sensibilidad:")
+    print(df.to_string(index=False))
+
+    guardar_csv(
+        df.set_index('Modificación'),
+        'E6_E7_E8_sensibilidad.csv',
+    )
+
+    # Mantener las columnas utilizadas por los gráficos.
     df_detalle = pd.DataFrame({
         'Nodo': NODOS_ORDEN,
-        'Nombre': [NODOS_INFO[n]['nombre'] for n in NODOS_ORDEN],
+        'Nombre': [
+            NODOS_INFO[nodo]['nombre']
+            for nodo in NODOS_ORDEN
+        ],
         'PR_Base': r_base,
-        'PR_Add': r_add,
-        'PR_Remove': r_rm,
-        'PR_Dangling': r_dang,
-        'Cambio_Add': r_add - r_base,
-        'Cambio_Remove': r_rm - r_base,
-        'Cambio_Dangling': r_dang - r_base,
+        'PR_Add': resultados['add'],
+        'PR_Remove': resultados['remove'],
+        'PR_Dangling': resultados['dangling'],
+        'Cambio_Add': resultados['add'] - r_base,
+        'Cambio_Remove': resultados['remove'] - r_base,
+        'Cambio_Dangling': resultados['dangling'] - r_base,
     }).set_index('Nodo')
 
     guardar_csv(df_detalle, 'E6_E7_E8_detalle.csv')
 
-    return {
-        'base': r_base,
-        'add': r_add,
-        'remove': r_rm,
-        'dangling': r_dang,
-        'G_dangling': G_dang,
-    }
+    resultados['G_dangling'] = G_dang
 
+    return resultados
 
 # =====================================================================
 # TABLA RESUMEN: TOP 5 DE TODOS LOS RANKINGS
