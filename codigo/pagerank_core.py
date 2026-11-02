@@ -272,46 +272,70 @@ def dict_personalizacion_nx(preferencia, nodos=None):
 # VERIFICACIONES
 # =====================================================================
 
-def verificar_resultado(r, P, alpha, v, nombre=""):
+def verificar_resultado(r, P, alpha, v, nombre="", tol=1e-10):
     """
-    Verifica que un vector PageRank cumple las propiedades esperadas.
-
     Comprueba:
-        1. Suma de componentes ≈ 1
-        2. Todas las componentes ≥ 0
-        3. Residuo ||r − αPr − (1−α)v||₁ suficientemente pequeño
+        1. Componentes finitas.
+        2. Suma de componentes cercana a uno.
+        3. Ausencia de componentes negativas.
+        4. Certificado de error menor o igual que tol.
 
-    Parameters
-    ----------
-    r      : np.ndarray — Vector PageRank.
-    P      : np.ndarray — Matriz de transición.
-    alpha  : float
-    v      : np.ndarray — Vector de reinicio.
-    nombre : str        — Etiqueta para los mensajes.
+    Devuelve True si cumple todas las comprobaciones.
     """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha debe estar entre 0 y 1, sin incluirlos.")
+
+    if not np.isfinite(tol) or tol <= 0:
+        raise ValueError("tol debe ser positiva y finita.")
+
     if v is None:
         v = vector_reinicio_uniforme(P.shape[0])
 
-    suma = np.sum(r)
-    minimo = np.min(r)
-    residuo = np.linalg.norm(r - alpha * (P @ r) - (1 - alpha) * v, ord=1)
+    r = np.asarray(r, dtype=float)
 
     print(f"\n--- Verificación: {nombre} ---")
-    print(f"  Suma de componentes   : {suma:.12f}  (esperado: 1.0)")
-    print(f"  Mínimo componente     : {minimo:.2e}  (esperado: ≥ 0)")
-    print(f"  Residuo ||r−αPr−(1−α)v||₁ : {residuo:.2e}")
 
-    ok = True
-    if abs(suma - 1.0) > 1e-6:
-        print("  ⚠ La suma no es 1.")
-        ok = False
-    if minimo < -1e-10:
-        print("  ⚠ Hay componentes negativas.")
-        ok = False
-    if residuo > 1e-6:
-        print("  ⚠ El residuo es alto.")
-        ok = False
+    if not np.all(np.isfinite(r)):
+        print("  ERROR: hay componentes no finitas.")
+        return False
+
+    suma = np.sum(r)
+    minimo = np.min(r)
+
+    residuo = np.linalg.norm(
+        r - alpha * (P @ r) - (1 - alpha) * v,
+        ord=1,
+    )
+    cota_error = residuo / (1 - alpha)
+
+    print(f"  Suma de componentes : {suma:.12f}")
+    print(f"  Mínimo componente   : {minimo:.2e}")
+    print(f"  Residuo en norma uno: {residuo:.2e}")
+    print(f"  Cota del error      : {cota_error:.2e}")
+    print(f"  Tolerancia exigida  : {tol:.2e}")
+
+    suma_correcta = abs(suma - 1.0) <= tol
+
+    # Se admite un margen pequeño por redondeo numérico.
+    no_negativo = minimo >= -1e-14
+
+    precision_correcta = (
+        np.isfinite(cota_error) and cota_error <= tol
+    )
+
+    ok = suma_correcta and no_negativo and precision_correcta
+
+    if not suma_correcta:
+        print("  ERROR: la suma difiere de uno más de lo permitido.")
+
+    if not no_negativo:
+        print("  ERROR: hay componentes negativas fuera del margen numérico.")
+
+    if not precision_correcta:
+        print("  ERROR: no se certificó la precisión requerida.")
+
     if ok:
-        print("  ✓ Todas las verificaciones pasaron.")
-    return ok
+        print("  Todas las verificaciones pasaron.")
+
+    return bool(ok)
 
