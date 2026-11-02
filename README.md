@@ -23,14 +23,13 @@
 
 ## 1. Planteamiento del Problema, Objetivo y Alcance
 
-### 1.1. Contexto y Problema
+### 1.1. Contexto y problema
 
-En la World Wide Web, las páginas y sus hipervínculos conforman un grafo dirigido. La aproximación elemental para medir la relevancia de una página consiste en contar cuántos enlaces recibe (*in-degree*). No obstante, esta medida presenta limitaciones críticas:
+Las páginas web y sus enlaces forman una red dirigida: cada página es un nodo y cada enlace tiene un origen y un destino. Una forma sencilla de clasificar las páginas consiste en contar cuántos enlaces recibe cada una. Esta medida se denomina grado de entrada o in-degree. Sin embargo, considera todos los enlaces recibidos por igual, sin distinguir la relevancia de las páginas que los proporcionan.
 
-1. **Ponderación uniforme ingenua:** Asume que todos los votos entrantes tienen idéntica autoridad, ignorando que un hipervínculo proveniente de un portal de alto prestigio debe conferir mayor credibilidad que enlaces de sitios periféricos.
-2. **Carencia de personalización temática:** Un ranking global único no contempla los intereses específicos del usuario (por ejemplo, alguien que navega buscando contenidos de tecnología frente a uno interesado en deportes).
+PageRank incorpora esa diferencia: cada página reparte su puntuación entre sus enlaces de salida. Por ello, la puntuación de una página depende tanto de los enlaces que recibe como de las puntuaciones de las páginas que la enlazan. El modelo puede interpretarse como una persona que navega siguiendo enlaces y que, de vez en cuando, reinicia la navegación. Las puntuaciones representan la proporción de visitas que recibiría cada página a largo plazo bajo esas reglas. En PageRank uniforme, los reinicios asignan la misma probabilidad a todas las páginas. En PageRank personalizado, se modifican esas probabilidades para favorecer determinados temas, como tecnología o deportes.
 
-El algoritmo **PageRank** resuelve estas deficiencias modelando la navegación como una **cadena de Markov ergódica**, donde la importancia de una página se retroalimenta iterativamente de la relevancia de las páginas que la enlazan, ponderada inversamente por el número de enlaces de salida de estas. Asimismo, su variante **PageRank Personalizado** (*Personalized PageRank* - PPR) permite sesgar el vector de reinicio para canalizar la relevancia hacia categorías temáticas de interés sin alterar la topología de la red.
+El proyecto comparará estas clasificaciones en una red simulada y analizará cómo cambian al modificar las preferencias, algunos enlaces y el parámetro de seguimiento de enlaces. La relevancia calculada depende de la estructura de la red y de las decisiones del modelo. No garantiza la calidad, credibilidad o veracidad del contenido de las páginas.
 
 ### 1.2. Pregunta de Investigación
 
@@ -50,27 +49,52 @@ Implementar, verificar y analizar computacional y matemáticamente los algoritmo
 
 ## 2. Fundamentos Matemáticos
 
-### 2.1. Construcción de la Matriz de Transición Estocástica $P$
+### 2.1. Construcción de la matriz de transición P
 
-Sea una red representada por un grafo dirigido $G = (V, E)$ de $n$ vértices. Para cada nodo $j$ con conjunto de enlaces salientes $\text{Out}(j)$ y grado saliente $d_j^{\text{out}} = |\text{Out}(j)|$:
+La red se representa mediante una matriz P de 20 filas y 20 columnas. La entrada P_ij indica la probabilidad de pasar desde la página j hacia la página i.
 
-$$
-P_{ij} = \begin{cases} \dfrac{1}{d_j^{\text{out}}} & \text{si } (j \to i) \in E \\ 0 & \text{en otro caso} \end{cases}
-$$
+Las columnas representan páginas de origen y las filas representan páginas de destino.
 
-#### Tratamiento de Nodos sin Salidas (*Dangling Nodes*)
-
-Si una página no tiene enlaces salientes ($d_j^{\text{out}} = 0$), su columna sería nula, lo que provocaría que la suma de probabilidades decaiga a cero. Para mantener la propiedad estocástica, se asume que un navegante que llega a un sumidero salta con igual probabilidad hacia cualquier página de la red:
+Si una página j tiene d_j enlaces de salida, se asigna la misma probabilidad a cada uno:
 
 $$
-P_{ij} = \frac{1}{n} \quad \forall i \in \{1, \dots, n\} \quad \text{si } d_j^{\text{out}} = 0
+P_{ij}=
+\begin{cases}
+1/d_j & \text{si existe un enlace de } j \text{ hacia } i,\\
+0 & \text{en otro caso},
+\end{cases}
+\qquad d_j>0.
 $$
 
-De este modo, $P \in \mathbb{R}^{n \times n}$ es una matriz estocástica por columnas:
+Por ejemplo, si A enlaza únicamente a B y C, desde A se asigna una probabilidad de 1/2 a cada destino.
+
+P es estocástica por columnas: sus entradas son no negativas y cada columna suma uno.
 
 $$
-\sum_{i=1}^{n} P_{ij} = 1 \quad \forall j \in \{1, \dots, n\}
+P_{ij}\geq 0,
+\qquad
+\sum_{i=1}^{n}P_{ij}=1.
 $$
+
+Si x contiene las puntuaciones actuales, el producto Px las redistribuye según los enlaces de la red.
+
+#### Tratamiento de páginas sin enlaces de salida
+
+Una página sin salidas produciría una columna de ceros. Sin una corrección, el reparto no conservaría toda la probabilidad.
+
+Para evitarlo, se reemplaza esa columna por una distribución uniforme:
+
+$$
+P_{ij}=\frac{1}{n}
+\quad \text{para todo } i,
+\quad \text{si } d_j=0.
+$$
+
+En nuestra red, cada entrada de esa columna vale 1/20 = 0.05, incluida la correspondiente a la propia página.
+
+Esta redistribución es una regla del modelo: no añade enlaces a la lista del grafo.
+
+La regla se mantiene uniforme tanto en PageRank general como en el personalizado. También se configura explícitamente en NetworkX mediante el parámetro `dangling`, para comparar los mismos modelos.
 
 ---
 
@@ -137,55 +161,73 @@ Por el **Teorema de Perron-Frobenius**, al ser $G$ positiva y primitiva, $\lambd
 
 ---
 
-### 2.4. Convergencia del Método Iterativo (*Power Method*)
+### 2.4. Convergencia del método iterativo
 
-El cómputo sucesivo se define por la relación de recurrencia:
-
-$$
-r^{(k+1)} = \alpha P r^{(k)} + (1 - \alpha) v
-$$
-
-#### Cota de Error $\alpha^k$:
-
-Restando el punto fijo exacto $r^{\ast} = \alpha P r^{\ast} + (1 - \alpha) v$:
+El algoritmo comienza con puntuaciones uniformes y las actualiza mediante:
 
 $$
-r^{(k+1)} - r^{\ast} = \alpha P (r^{(k)} - r^{\ast})
+x^{(k+1)}=\alpha Px^{(k)}+(1-\alpha)v.
 $$
 
-Tomando la norma 1:
+Aquí, x representa una aproximación a las puntuaciones finales y k indica el número de iteración. La matriz P, alfa y el vector de reinicio v permanecen fijos durante cada ejecución.
+
+#### Convergencia hacia el equilibrio
+
+Sea r el vector de equilibrio. Al restar su ecuación de la actualización se obtiene:
 
 $$
-\lVert r^{(k+1)} - r^{\ast} \rVert_1 \le \alpha \lVert P \rVert_1 \lVert r^{(k)} - r^{\ast} \rVert_1 = \alpha \lVert r^{(k)} - r^{\ast} \rVert_1
+x^{(k+1)}-r=\alpha P(x^{(k)}-r).
 $$
 
-Aplicando inducción matemática desde el paso $k = 0$:
+La norma uno de un vector se calcula sumando los valores absolutos de sus componentes. Como P es estocástica por columnas, su norma matricial inducida es uno. Por tanto:
 
 $$
-\lVert r^{(k+1)} - r^{\ast} \rVert_1 \le \alpha^k \lVert r^{(0)} - r^{\ast} \rVert_1
+\|x^{(k+1)}-r\|_1
+\leq
+\alpha\|x^{(k)}-r\|_1.
 $$
 
-Dado que $0 \le \alpha < 1$, se cumple $\lim_{k \to \infty} \alpha^k = 0$, lo que demuestra la **convergencia lineal global**. El número de iteraciones necesarias escala como:
+Esto significa que la distancia al equilibrio se reduce en cada paso por un factor no mayor que alfa. Aplicando la desigualdad repetidamente:
 
 $$
-k \approx \frac{\log(\tau)}{\log(\alpha)}
+\|x^{(k)}-r\|_1
+\leq
+\alpha^k\|x^{(0)}-r\|_1.
 $$
 
-#### Certificado de Error a través del Residuo:
+Como 0 < alfa < 1, el factor alfa elevado a k tiende a cero. Así, las aproximaciones convergen al equilibrio desde cualquier distribución inicial de probabilidad.
 
-Evaluando el vector residual $\delta^{(k)} = (I - \alpha P) r^{(k)} - (1 - \alpha) v$:
+Esta cota garantiza convergencia, pero no predice exactamente cuántas iteraciones necesitará una red concreta.
 
-$$
-r^{(k)} - r^{\ast} = (I - \alpha P)^{-1} \delta^{(k)}
-$$
+#### Residuo y certificado de error
 
-Aplicando normas:
+El residuo de una aproximación x se define como:
 
 $$
-\lVert r^{(k)} - r^{\ast} \rVert_1 \le \lVert (I - \alpha P)^{-1} \rVert_1 \lVert \delta^{(k)} \rVert_1 \le \frac{1}{1 - \alpha} \lVert \delta^{(k)} \rVert_1
+\rho(x)=\|x-\alpha Px-(1-\alpha)v\|_1.
 $$
 
-Para $\alpha = 0.85$, se tiene $\frac{1}{1-\alpha} \approx 6.67$. Un residuo medido menor que $10^{-11}$ certifica matemáticamente que la distancia a la solución exacta es inferior a $10^{-10}$.
+El residuo compara las puntuaciones actuales con las que se obtendrían al actualizarlas nuevamente. El error, en cambio, mide la distancia entre x y la solución de equilibrio r.
+
+El residuo permite establecer la siguiente cota:
+
+$$
+\|x-r\|_1\leq\frac{\rho(x)}{1-\alpha}.
+$$
+
+Por ejemplo, con alfa = 0.85 y un residuo de 10⁻¹¹, el error no supera aproximadamente 6.67 × 10⁻¹¹.
+
+#### Criterio de parada utilizado
+
+En el proyecto se establece una tolerancia de error en norma uno de 10⁻¹⁰. El algoritmo se detiene cuando:
+
+$$
+\frac{\rho(x)}{1-\alpha}\leq 10^{-10}.
+$$
+
+El certificado se calcula sobre el mismo vector que devuelve la función.
+
+También se fija un máximo de 5000 iteraciones. Si se alcanza sin cumplir el criterio, el programa genera un error e informa que no se certificó la precisión requerida.
 
 ---
 
@@ -332,19 +374,30 @@ $$
 
 ---
 
-### 5.3. Convergencia y Sensibilidad al Parámetro $\alpha$ (Experimento E5)
+### 5.3. Convergencia y sensibilidad al parámetro alfa (E5)
 
-| $\alpha$ | Iteraciones | Residuo Final $\lVert \delta \rVert_1$ | Top 1 | Top 2 | Top 3 | Top 4 | Top 5 |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **0.50** | **24** | $3.15 \times 10^{-11}$ | $T_1$ | $C_1$ | $D_1$ | $D_2$ | $T_3$ |
-| **0.85** | **65** | $6.13 \times 10^{-11}$ | $C_1$ | $T_1$ | $D_1$ | $C_3$ | $D_2$ |
-| **0.95** | **101** | $8.06 \times 10^{-11}$ | $C_1$ | $T_1$ | $C_3$ | $D_1$ | $D_2$ |
-| **0.99** | **128** | $8.23 \times 10^{-11}$ | $C_1$ | $C_3$ | $T_1$ | $D_1$ | $C_6$ |
+Se evaluaron cuatro valores de alfa utilizando la misma red, el reinicio uniforme y una distribución inicial uniforme.
 
-- Al aumentar $\alpha$ de 0.50 a 0.99, las iteraciones se incrementan en un **533 %** (de 24 a 128), concordando con la cota de contracción $\alpha^k$.
-- Se manifiesta el fenómeno de **inversión de rangos (*rank reversal*)**: a $\alpha=0.50$, $T_1$ lidera; a $\alpha \ge 0.85$, $C_1$ asume el primer puesto; y a $\alpha=0.99$, $C_3$ salta al segundo lugar y $C_6$ ingresa al Top 5.
+El algoritmo se detuvo cuando el certificado de error —residuo dividido entre 1 − alfa— fue menor o igual que 10⁻¹⁰.
 
----
+| Alfa | Iteraciones | Residuo final aproximado | Cota del error aproximada | Primeros cinco lugares |
+|:---:|:---:|:---:|:---:|---|
+| 0.50 | 24 | 3.15 × 10⁻¹¹ | 6.31 × 10⁻¹¹ | T1, C1, D1, D2, T3 |
+| 0.85 | 70 | 1.32 × 10⁻¹¹ | 8.78 × 10⁻¹¹ | C1, T1, D1, C3, D2 |
+| 0.95 | 116 | 4.24 × 10⁻¹² | 8.49 × 10⁻¹¹ | C1, T1, C3, D1, D2 |
+| 0.99 | 157 | 9.18 × 10⁻¹³ | 9.18 × 10⁻¹¹ | C1, C3, T1, D1, C6 |
+
+Las cuatro ejecuciones cumplieron la tolerancia establecida. Las cifras se muestran redondeadas; las comprobaciones utilizan los valores completos.
+
+En esta red, las iteraciones aumentaron de 24 a 157 entre alfa = 0.50 y alfa = 0.99, un incremento aproximado del 554.2 %. Al acercarse alfa a uno, la reducción garantizada del error por paso es más lenta y se exige un residuo menor para certificar la misma precisión.
+
+También cambió el ranking: T1 lidera con alfa = 0.50; C1 ocupa el primer puesto con los otros valores evaluados. Con alfa = 0.99, C3 asciende al segundo lugar y C6 entra en los primeros cinco.
+
+Las diferencias en norma uno entre las aproximaciones iterativas y la solución directa fueron menores que 10⁻¹⁰ en las cuatro ejecuciones.
+
+Los datos completos están disponibles en `resultados/E5_convergencia_alpha.csv`. Estos resultados corresponden a la red estudiada y no establecen un valor de alfa universalmente óptimo.
+
+--- 
 
 ### 5.4. Sensibilidad ante Modificaciones de Enlaces (E6, E7, E8)
 
