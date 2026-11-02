@@ -447,52 +447,50 @@ $$
 
 Se evaluó el método iterativo con alfa = 0.50, 0.85, 0.95 y 0.99, manteniendo la misma red, el reinicio uniforme y la distribución inicial uniforme.
 
-En la implementación utilizada para estos resultados, el algoritmo se detiene cuando la diferencia en norma uno entre dos iteraciones consecutivas es menor que 10⁻¹⁰:
+Para comparar las ejecuciones con una misma precisión, se estableció una tolerancia de error en norma uno de 10⁻¹⁰. El algoritmo se detuvo cuando:
 
 $$
-\|x^{(k+1)}-x^{(k)}\|_1<10^{-10}.
+\frac{\rho(x)}{1-\alpha}\leq 10^{-10},
 $$
 
-Los resultados obtenidos fueron:
-
-| Alfa | Iteraciones | Residuo final aproximado | Primeros cinco lugares |
-|:---:|:---:|:---:|---|
-| 0.50 | 24 | 3.15 × 10⁻¹¹ | T1, C1, D1, D2, T3 |
-| 0.85 | 65 | 6.13 × 10⁻¹¹ | C1, T1, D1, C3, D2 |
-| 0.95 | 101 | 8.06 × 10⁻¹¹ | C1, T1, C3, D1, D2 |
-| 0.99 | 128 | 8.23 × 10⁻¹¹ | C1, C3, T1, D1, C6 |
-
-#### Interpretación de las iteraciones
-
-En esta red y bajo el criterio de parada utilizado, el número de iteraciones aumentó al incrementar alfa. Entre alfa = 0.50 y alfa = 0.99, pasó de 24 a 128, lo que representa un aumento aproximado del 433.3 %.
-
-Este comportamiento es compatible con la cota de contracción: cuando alfa se acerca a uno, la reducción garantizada del error por iteración es más lenta. Sin embargo, dicha cota no determina exactamente el número de iteraciones observado, que también depende de la red, la distribución inicial y el criterio de parada.
-
-#### Cambios en el ranking
-
-Con alfa = 0.50, T1 ocupa el primer lugar. Para los otros valores evaluados, C1 pasa a la primera posición. Con alfa = 0.99, C3 asciende al segundo lugar y C6 entra en los primeros cinco.
-
-Al aumentar alfa, se da mayor peso al seguimiento de enlaces y menor peso a los reinicios. Esto puede modificar las puntuaciones y el orden de las páginas. No implica que un valor de alfa sea universalmente mejor que otro.
-
-#### Precisión y ajuste pendiente
-
-Una diferencia pequeña entre iteraciones no equivale directamente al mismo límite de error respecto de la solución de equilibrio.
-
-Para una aproximación x, el residuo es:
+donde el residuo se calcula como:
 
 $$
 \rho(x)=\|x-\alpha Px-(1-\alpha)v\|_1.
 $$
 
-La cota del error viene dada por:
+Los resultados fueron:
 
-$$
-\|x-r\|_1\leq\frac{\rho(x)}{1-\alpha}.
-$$
+| Alfa | Iteraciones | Residuo final aproximado | Cota del error aproximada | Primeros cinco lugares |
+|:---:|:---:|:---:|:---:|---|
+| 0.50 | 24 | 3.15 × 10⁻¹¹ | 6.31 × 10⁻¹¹ | T1, C1, D1, D2, T3 |
+| 0.85 | 70 | 1.32 × 10⁻¹¹ | 8.78 × 10⁻¹¹ | C1, T1, D1, C3, D2 |
+| 0.95 | 116 | 4.24 × 10⁻¹² | 8.49 × 10⁻¹¹ | C1, T1, C3, D1, D2 |
+| 0.99 | 157 | 9.18 × 10⁻¹³ | 9.18 × 10⁻¹¹ | C1, C3, T1, D1, C6 |
 
-Por tanto, los residuos de la tabla no certifican una tolerancia de error de 10⁻¹⁰ para todos los valores de alfa.
+Las cuatro ejecuciones cumplieron la tolerancia establecida. Las cotas se calcularon con los valores completos del residuo; en la tabla se muestran redondeadas.
 
-Se actualizará el criterio de parada para exigir que el cociente entre el residuo y 1 − alfa sea menor o igual que la tolerancia elegida. Después se repetirán los experimentos y se actualizarán las iteraciones, los residuos, los certificados de error y las figuras correspondientes.
+#### Interpretación de las iteraciones
+
+En esta red, el número de iteraciones aumentó al incrementar alfa. Entre alfa = 0.50 y alfa = 0.99, pasó de 24 a 157, lo que representa un aumento aproximado del 554.2 %.
+
+Este comportamiento es compatible con la contracción: cuando alfa se acerca a uno, la reducción garantizada del error por paso es más lenta. Además, para certificar una misma tolerancia, el criterio exige un residuo menor al aumentar alfa.
+
+La cota teórica garantiza convergencia, pero no determina exactamente el número de iteraciones observado.
+
+#### Cambios en el ranking
+
+Con alfa = 0.50, T1 ocupa el primer lugar. Para los otros valores evaluados, C1 pasa a la primera posición. Con alfa = 0.99, C3 asciende al segundo lugar y C6 entra en los primeros cinco.
+
+Al aumentar alfa, se da mayor peso al seguimiento de enlaces y menor peso a los reinicios. Esto puede modificar las puntuaciones y el orden de las páginas.
+
+Los resultados corresponden a esta red y no demuestran que un valor de alfa sea universalmente mejor que otro.
+
+#### Comprobación con la solución directa
+
+Las aproximaciones iterativas también se compararon con la solución obtenida mediante `numpy.linalg.solve`.
+
+En las cuatro ejecuciones, la diferencia en norma uno entre ambos procedimientos fue menor que 10⁻¹⁰. Esta comparación complementa las comprobaciones del residuo, la suma de componentes y la no negatividad.
 
 ### 4.5. Experimentos E6, E7 y E8: sensibilidad ante cambios en los enlaces
 
@@ -508,7 +506,9 @@ Los cambios de puntuación se calcularon restando el resultado de la red origina
 | E7 | Eliminar T2 → T1, D3 → D1 y C3 → C1 | C6 | +0.036652 | C6, C3, T1, D2, C4 |
 | E8 | Eliminar D6 → D2 y D6 → D7, dejando D6 sin salidas | D2 | −0.015135 | C1, T1, C3, D1, T3 |
 
-Las cifras corresponden a la implementación actual y se revisarán al repetir los experimentos con el criterio de parada definitivo.
+Las cifras corresponden a los experimentos repetidos con el criterio de parada basado en el certificado de error. En la red original y en los tres escenarios modificados, el método iterativo, la solución directa y NetworkX superaron las verificaciones de suma de componentes, no negatividad y cota de error menor o igual que 10⁻¹⁰.
+
+Las comprobaciones se encuentran en `resultados/E6_E7_E8_verificaciones.csv`.
 
 #### E6: adición de enlaces
 
@@ -556,7 +556,7 @@ Todos los integrantes explicarán una parte sustantiva del proyecto. Se utilizar
 | 8:00–9:00 | Interpretación | Explicar las diferencias observadas entre clasificaciones. Distinguir cambios de puntuación, cambios de posición y cambios en la composición de los primeros cinco lugares. Apoyo: resultados seleccionados de los experimentos. | Marianela Usnayo |
 | 9:00–10:00 | Conclusiones y cierre | Resumir los hallazgos y las limitaciones de trabajar con una red simulada. Aclarar que PageRank mide relevancia según el modelo, no calidad o veracidad del contenido. Mostrar referencias principales y enlace al repositorio. | Luciana Carpio |
 
-Antes de grabar, se actualizarán las tablas y figuras después de corregir el criterio de parada y repetir los experimentos. Las cifras mostradas en el video deberán coincidir con las publicadas en el informe y el repositorio.
+Las tablas y figuras se regeneraron después de corregir el criterio de parada y repetir los experimentos. Antes de grabar, se comprobará que las cifras mostradas en el video coincidan con las publicadas en el informe y el repositorio.
 
 Las demostraciones completas estarán disponibles en el informe. En el video se presentarán sus pasos esenciales, acompañados de ejemplos que permitan entender su función dentro del proyecto.
 
