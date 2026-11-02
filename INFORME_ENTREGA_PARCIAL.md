@@ -29,7 +29,9 @@
 
 En el ecosistema de la World Wide Web, los hipervínculos estructuran un grafo dirigido masivo donde las páginas actúan como nodos y los enlaces como aristas orientadas. La aproximación elemental para determinar la centralidad o importancia de un nodo consiste en el cómputo de su grado de entrada (_in-degree_):
 
-$$\text{deg}_{\text{in}}(i) = \sum_{j=1}^{n} A_{ij}$$
+$$
+\text{deg}_{\text{in}}(i) = \sum_{j=1}^{n} A_{ij}
+$$
 
 No obstante, esta formulación presenta limitaciones teóricas insalvables:
 
@@ -53,7 +55,7 @@ Implementar, verificar y analizar computacional y matemáticamente los algoritmo
 2. Deducir y demostrar la equivalencia entre las tres formulaciones del problema: punto fijo iterativo, sistema de ecuaciones lineales no homogéneo $(I - \alpha P)r = (1-\alpha)v$ y vector propio dominante de la matriz Google $G$.
 3. Construir una implementación propia en Python basada en el método de las potencias (_Power Method_), validando su reproducibilidad con el ejemplo patrón de 3 nodos y contrastándola contra la inversión matricial exacta y `networkx.pagerank`.
 4. Diseñar y ejecutar ocho experimentos numéricos (E1 a E8) para medir el impacto de la personalización temática, la tasa de contracción y el fenómeno de inversión de rangos (_rank reversal_).
-5. Cuantificar el residuo $\|r - \alpha P r - (1-\alpha)v\|_1$ como certificado riguroso de precisión numérica.
+5. Cuantificar el residuo $\lVert r - \alpha P r - (1-\alpha)v \rVert_1$ como certificado riguroso de precisión numérica.
 
 ### 1.5. Alcance y Delimitación
 
@@ -71,18 +73,25 @@ Sea un grafo dirigido $G = (V, E)$ con conjunto de vértices $V = \{1, 2, \dots,
 
 La probabilidad condicional de que un navegante aleatorio ubicado en el nodo $j$ elija transitar hacia el nodo $i$ siguiendo un enlace saliente viene dada por los coeficientes de la matriz de adyacencia normalizada $P \in \mathbb{R}^{n \times n}$:
 
-$$P_{ij} = \begin{cases} \frac{1}{d_j^{\text{out}}} & \text{si } (j \to i) \in E \\ 0 & \text{en otro caso} \end{cases}$$
+$$
+P_{ij} = \begin{cases} \frac{1}{d_j^{\text{out}}} & \text{si } (j \to i) \in E \\ 0 & \text{en otro caso} \end{cases}
+$$
 
 #### Tratamiento Riguroso de Nodos sin Salidas (_Dangling Nodes_)
 
-Si un nodo $j$ carece de enlaces salientes ($d_j^{\text{out}} = 0$), la columna $j$ de la matriz resultaría idénticamente nula ($\sum_{i=1}^n P_{ij} = 0$), quebrantando la propiedad estocástica y generando una disipación continua de probabilidad en el proceso markoviano ($\|r^{(k)}\|_1 \to 0$).
+Si un nodo $j$ carece de enlaces salientes ($d_j^{\text{out}} = 0$), la columna $j$ de la matriz resultaría idénticamente nula ($\sum_{i=1}^n P_{ij} = 0$), quebrantando la propiedad estocástica y generando una disipación continua de probabilidad en el proceso markoviano ($\lVert r^{(k)} \rVert_1 \to 0$).
 
 Para preservar la conservación de la probabilidad, se define formalmente la corrección estocástica: cuando el navegante arriba a un sumidero, salta con idéntica probabilidad hacia cualquier nodo de la red:
 
-$$P_{ij} = \frac{1}{n} \quad \forall i \in \{1, \dots, n\} \quad \text{si } d_j^{\text{out}} = 0$$
+$$
+P_{ij} = \frac{1}{n} \quad \forall i \in \{1, \dots, n\} \quad \text{si } d_j^{\text{out}} = 0
+$$
 
 Con esta regla, $P$ es estrictamente **estocástica por columnas**:
-$$\sum_{i=1}^{n} P_{ij} = 1 \quad \forall j \in \{1, \dots, n\}, \quad P_{ij} \ge 0$$
+
+$$
+\sum_{i=1}^{n} P_{ij} = 1 \quad \forall j \in \{1, \dots, n\}, \quad P_{ij} \ge 0
+$$
 
 ---
 
@@ -93,11 +102,18 @@ Para garantizar la ergodicidad (irreducibilidad y aperiodicidad) de la cadena de
 - Con probabilidad $\alpha \in (0, 1)$, el usuario sigue uno de los hipervínculos disponibles en la página actual.
 - Con probabilidad complementaria $(1 - \alpha)$, el usuario abandona la secuencia de navegación y se teletransporta hacia una página elegida según una distribución de probabilidad dada por el **vector de reinicio** $v \in \mathbb{R}^n$, donde:
 
-$$v_i \ge 0, \quad \sum_{i=1}^{n} v_i = 1$$
+$$
+v_i \ge 0, \quad \sum_{i=1}^{n} v_i = 1
+$$
 
 - **PageRank Uniforme:** $v = \mathbf{1}/n$, donde cada nodo recibe probabilidad de reinicio $1/n$.
 - **PageRank Personalizado:** $v$ concentra peso probabilístico sobre un subconjunto de nodos semilla $S \subset V$:
-  $$v_i = \begin{cases} \frac{\beta}{|S|} & \text{si } i \in S \\ \frac{1 - \beta}{n - |S|} & \text{si } i \notin S \end{cases}$$
+  
+
+$$
+v_i = \begin{cases} \frac{\beta}{|S|} & \text{si } i \in S \\ \frac{1 - \beta}{n - |S|} & \text{si } i \notin S \end{cases}
+$$
+
   En nuestro proyecto, adoptamos $\beta = 0.70$ para privilegiar de forma contundente la categoría de interés.
 
 ---
@@ -108,40 +124,70 @@ $$v_i \ge 0, \quad \sum_{i=1}^{n} v_i = 1$$
 
 La distribución estacionaria de probabilidad $r \in \mathbb{R}^n$ satisface el balance de flujo invariante:
 
-$$r = \alpha P r + (1 - \alpha) v$$
+$$
+r = \alpha P r + (1 - \alpha) v
+$$
 
 Sujeto a las restricciones de probabilidad:
-$$r \ge \mathbf{0}, \quad \|r\|_1 = \sum_{i=1}^{n} r_i = 1$$
+
+$$
+r \ge \mathbf{0}, \quad \lVert r \rVert_1 = \sum_{i=1}^{n} r_i = 1
+$$
 
 #### Formulación 2: Sistema de Ecuaciones Lineales No Homogéneo
 
 Reordenando los términos algebraicamente:
-$$r - \alpha P r = (1 - \alpha) v \implies (I - \alpha P) r = (1 - \alpha) v$$
+
+$$
+r - \alpha P r = (1 - \alpha) v \implies (I - \alpha P) r = (1 - \alpha) v
+$$
 
 Donde $I \in \mathbb{R}^{n \times n}$ es la matriz identidad.
 
 **Teorema de Existencia y Unicidad de la Solución:**
 
-1. Como la matriz $P$ es estocástica por columnas, su norma matricial inducida por la norma 1 es $\|P\|_1 = \max_{j} \sum_{i=1}^n |P_{ij}| = 1$.
-2. Por las propiedades del radio espectral $\rho(A) \le \|A\|$, se tiene que $\rho(P) \le 1$.
+1. Como la matriz $P$ es estocástica por columnas, su norma matricial inducida por la norma 1 es $\lVert P \rVert_1 = \max_{j} \sum_{i=1}^n |P_{ij}| = 1$.
+2. Por las propiedades del radio espectral $\rho(A) \le \lVert A \rVert$, se tiene que $\rho(P) \le 1$.
 3. Al multiplicar por el escalar $\alpha \in [0, 1)$, se cumple estrictamente:
-   $$\rho(\alpha P) = \alpha \rho(P) \le \alpha < 1$$
+   
+
+$$
+\rho(\alpha P) = \alpha \rho(P) \le \alpha < 1
+$$
+
 4. En virtud del teorema de las series de Neumann, si el radio espectral de una matriz $M$ es estrictamente menor que 1, la matriz $(I - M)$ es invertible y su inversa se expresa como la serie convergente:
-   $$(I - \alpha P)^{-1} = \sum_{m=0}^{\infty} (\alpha P)^m$$
+   
+
+$$
+(I - \alpha P)^{-1} = \sum_{m=0}^{\infty} (\alpha P)^m
+$$
+
 5. Por consiguiente, la matriz $(I - \alpha P)$ es estrictamente no singular, garantizando la **existencia y unicidad** de la solución:
-   $$r^* = (1 - \alpha) (I - \alpha P)^{-1} v$$
+   
+
+$$
+r^{\ast} = (1 - \alpha) (I - \alpha P)^{-1} v
+$$
 
 #### Formulación 3: Problema de Vectores y Valores Propios (Matriz Google $G$)
 
 Observando que $\mathbf{1}^T r = \sum_{i=1}^n r_i = 1$, podemos reescribir $(1 - \alpha) v$ como $(1 - \alpha) v (\mathbf{1}^T r)$. Sustituyendo en la ecuación de punto fijo:
 
-$$r = \alpha P r + (1 - \alpha) v \mathbf{1}^T r = \left( \alpha P + (1 - \alpha) v \mathbf{1}^T \right) r$$
+$$
+r = \alpha P r + (1 - \alpha) v \mathbf{1}^T r = \left( \alpha P + (1 - \alpha) v \mathbf{1}^T \right) r
+$$
 
 Definiendo la **Matriz Google** $G \in \mathbb{R}^{n \times n}$:
-$$G = \alpha P + (1 - \alpha) v \mathbf{1}^T$$
+
+$$
+G = \alpha P + (1 - \alpha) v \mathbf{1}^T
+$$
 
 La ecuación se reduce a:
-$$G r = 1 \cdot r$$
+
+$$
+G r = 1 \cdot r
+$$
 
 Esto demuestra que el vector de PageRank $r$ es el **vector propio dominante por la derecha** de la matriz estocástica y positiva $G$, asociado al valor propio $\lambda = 1$.  
 Dado que $G_{ij} = \alpha P_{ij} + (1 - \alpha) v_i > 0$ (para $v_i > 0$), la matriz $G$ es estrictamente positiva y primitiva. Conforme al **Teorema de Perron-Frobenius**, el valor propio $\lambda_1 = 1$ es simple, estrictamente mayor en módulo que cualquier otro valor propio ($|\lambda_j| < 1 \quad \forall j \ge 2$), y su vector propio asociado admite una normalización con todas sus componentes estrictamente positivas ($r_i > 0$).
@@ -151,44 +197,74 @@ Dado que $G_{ij} = \alpha P_{ij} + (1 - \alpha) v_i > 0$ (para $v_i > 0$), la ma
 ### 2.4. Demostración de Convergencia del Método Iterativo (_Power Method_)
 
 El cómputo sucesivo se define mediante la relación de recurrencia:
-$$r^{(k+1)} = \alpha P r^{(k)} + (1 - \alpha) v, \quad k = 0, 1, 2, \dots$$
+
+$$
+r^{(k+1)} = \alpha P r^{(k)} + (1 - \alpha) v, \quad k = 0, 1, 2, \dots
+$$
 
 Partiendo de una inicialización uniforme $r^{(0)} = \frac{1}{n} \mathbf{1}$.
 
 #### Contracción y Cota de Error $\alpha^k$:
 
-Restando el punto fijo exacto $r^* = \alpha P r^* + (1 - \alpha) v$ de la relación iterativa:
-$$r^{(k+1)} - r^* = \alpha P (r^{(k)} - r^*)$$
+Restando el punto fijo exacto $r^{\ast} = \alpha P r^{\ast} + (1 - \alpha) v$ de la relación iterativa:
+
+$$
+r^{(k+1)} - r^{\ast} = \alpha P (r^{(k)} - r^{\ast})
+$$
 
 Tomando la norma 1 a ambos lados y empleando la submultiplicatividad:
-$$\|r^{(k+1)} - r^*\|_1 = \|\alpha P (r^{(k)} - r^*)\|_1 \le \alpha \|P\|_1 \|r^{(k)} - r^*\|_1$$
 
-Como $\|P\|_1 = 1$:
-$$\|r^{(k+1)} - r^*\|_1 \le \alpha \|r^{(k)} - r^*\|_1$$
+$$
+\lVert r^{(k+1)} - r^{\ast} \rVert_1 = \lVert \alpha P (r^{(k)} - r^{\ast}) \rVert_1 \le \alpha \lVert P \rVert_1 \lVert r^{(k)} - r^{\ast} \rVert_1
+$$
+
+Como $\lVert P \rVert_1 = 1$:
+
+$$
+\lVert r^{(k+1)} - r^{\ast} \rVert_1 \le \alpha \lVert r^{(k)} - r^{\ast} \rVert_1
+$$
 
 Aplicando inducción matemática desde el paso inicial $k=0$:
-$$\|r^{(k)} - r^*\|_1 \le \alpha^k \|r^{(0)} - r^*\|_1$$
+
+$$
+\lVert r^{(k)} - r^{\ast} \rVert_1 \le \alpha^k \lVert r^{(0)} - r^{\ast} \rVert_1
+$$
 
 Dado que $0 \le \alpha < 1$, se deduce directamente que $\lim_{k \to \infty} \alpha^k = 0$, lo que demuestra la **convergencia lineal global independiente del vector inicial**.
 
 #### Criterio de Parada y Certificado de Error mediante el Residuo:
 
-En la práctica computacional no se dispone de $r^*$. Se evalúa el vector residual:
-$$\delta^{(k)} = r^{(k)} - \left( \alpha P r^{(k)} + (1 - \alpha) v \right) = (I - \alpha P) r^{(k)} - (1 - \alpha) v$$
+En la práctica computacional no se dispone de $r^{\ast}$. Se evalúa el vector residual:
 
-Observando que $(I - \alpha P)(r^{(k)} - r^*) = \delta^{(k)}$:
-$$r^{(k)} - r^* = (I - \alpha P)^{-1} \delta^{(k)}$$
+$$
+\delta^{(k)} = r^{(k)} - \left( \alpha P r^{(k)} + (1 - \alpha) v \right) = (I - \alpha P) r^{(k)} - (1 - \alpha) v
+$$
+
+Observando que $(I - \alpha P)(r^{(k)} - r^{\ast}) = \delta^{(k)}$:
+
+$$
+r^{(k)} - r^{\ast} = (I - \alpha P)^{-1} \delta^{(k)}
+$$
 
 Aplicando normas:
-$$\|r^{(k)} - r^*\|_1 \le \|(I - \alpha P)^{-1}\|_1 \|\delta^{(k)}\|_1$$
+
+$$
+\lVert r^{(k)} - r^{\ast} \rVert_1 \le \lVert (I - \alpha P)^{-1} \rVert_1 \lVert \delta^{(k)} \rVert_1
+$$
 
 Expandiendo mediante serie de Neumann:
-$$\|(I - \alpha P)^{-1}\|_1 = \left\| \sum_{m=0}^\infty (\alpha P)^m \right\|_1 \le \sum_{m=0}^\infty \alpha^m \|P\|_1^m = \sum_{m=0}^\infty \alpha^m = \frac{1}{1 - \alpha}$$
+
+$$
+\lVert (I - \alpha P)^{-1} \rVert_1 = \left\lVert  \sum_{m=0}^\infty (\alpha P)^m \right \rVert_1 \le \sum_{m=0}^\infty \alpha^m \lVert P \rVert_1^m = \sum_{m=0}^\infty \alpha^m = \frac{1}{1 - \alpha}
+$$
 
 Por consiguiente, se obtiene el **certificado formal de error**:
-$$\|r^{(k)} - r^*\|_1 \le \frac{1}{1 - \alpha} \|\delta^{(k)}\|_1$$
 
-Este resultado garantiza que controlar el residuo $\|\delta^{(k)}\|_1 < \tau (1 - \alpha)$ certifica que el error absoluto frente a la solución matemática exacta no supera la tolerancia deseada $\tau$.
+$$
+\lVert r^{(k)} - r^{\ast} \rVert_1 \le \frac{1}{1 - \alpha} \lVert \delta^{(k)} \rVert_1
+$$
+
+Este resultado garantiza que controlar el residuo $\lVert \delta^{(k)} \rVert_1 < \tau (1 - \alpha)$ certifica que el error absoluto frente a la solución matemática exacta no supera la tolerancia deseada $\tau$.
 
 ---
 
@@ -198,7 +274,9 @@ Este resultado garantiza que controlar el residuo $\|\delta^{(k)}\|_1 < \tau (1 
 
 Para validar la corrección de nuestras funciones antes de procesar el grafo principal, se reprodujo el ejemplo canónico de 3 nodos ($A \to B, A \to C, B \to C, C \to A$) con $\alpha = 0.85$:
 
-$$P_3 = \begin{pmatrix} 0 & 0 & 1 \\ 0.5 & 0 & 0 \\ 0.5 & 1 & 0 \end{pmatrix}, \quad v = \begin{pmatrix} 1/3 \\ 1/3 \\ 1/3 \end{pmatrix}$$
+$$
+P_3 = \begin{pmatrix} 0 & 0 & 1 \\ 0.5 & 0 & 0 \\ 0.5 & 1 & 0 \end{pmatrix}, \quad v = \begin{pmatrix} 1/3 \\ 1/3 \\ 1/3 \end{pmatrix}
+$$
 
 #### Resultados de la Validación Cruzada:
 
@@ -209,9 +287,9 @@ $$P_3 = \begin{pmatrix} 0 & 0 & 1 \\ 0.5 & 0 & 0 \\ 0.5 & 1 & 0 \end{pmatrix}, \
 | **C** |           **0.397400**            |                **0.397400**                |    **0.397400**     |
 
 - **Iteraciones:** 45 pasos hasta tolerancia $10^{-10}$.
-- **Discrepancia Iterativo vs. Analítico:** $\|r_{\text{iter}} - r_{\text{lin}}\|_1 = 2.90 \times 10^{-11}$.
-- **Discrepancia Iterativo vs. NetworkX:** $\|r_{\text{iter}} - r_{\text{nx}}\|_1 = 2.94 \times 10^{-11}$.
-- **Residuo:** $\|r - \alpha P r - (1-\alpha)v\|_1 = 4.50 \times 10^{-11}$.
+- **Discrepancia Iterativo vs. Analítico:** $\lVert r_{\text{iter}} - r_{\text{lin}} \rVert_1 = 2.90 \times 10^{-11}$.
+- **Discrepancia Iterativo vs. NetworkX:** $\lVert r_{\text{iter}} - r_{\text{nx}} \rVert_1 = 2.94 \times 10^{-11}$.
+- **Residuo:** $\lVert r - \alpha P r - (1-\alpha)v \rVert_1 = 4.50 \times 10^{-11}$.
 - **Verificación estocástica:** $\sum r_i = 1.000000000000$; $\min r_i = 0.2148 > 0$.
 
 ---
@@ -276,7 +354,9 @@ Al incorporar la formulación matricial completa:
 
 Se introdujeron dos vectores de reinicio sesgados con el 70 % de la masa de probabilidad asignada a su respectiva categoría:
 
-$$\text{Top 5 Comparativo entre Variantes:}$$
+$$
+\text{Top 5 Comparativo entre Variantes:}
+$$
 
 | Posición | _In-Degree_ | PageRank Uniforme | PR Personalizado (Tecnología) | PR Personalizado (Deportes) |
 | :------: | :---------: | :---------------: | :---------------------------: | :-------------------------: |
@@ -295,7 +375,7 @@ $$\text{Top 5 Comparativo entre Variantes:}$$
 
 Se evaluó la recurrencia del Power Method con tolerancia de convergencia $\tau = 10^{-10}$:
 
-| Factor $\alpha$ | Iteraciones Requeridas | Residuo Final $\|\delta\|_1$ |    Composición del Top 5    | Fenómeno Analítico                                                            |
+| Factor $\alpha$ | Iteraciones Requeridas | Residuo Final $\lVert \delta \rVert_1$ |    Composición del Top 5    | Fenómeno Analítico                                                            |
 | :-------------: | :--------------------: | :--------------------------: | :-------------------------: | :---------------------------------------------------------------------------- |
 |    **0.50**     |         **24**         |    $3.15 \times 10^{-11}$    | $[T_1, C_1, D_1, D_2, T_3]$ | Rápida convergencia; dominado por la estructura local y el reinicio uniforme. |
 |    **0.85**     |         **65**         |    $6.13 \times 10^{-11}$    | $[C_1, T_1, D_1, C_3, D_2]$ | Configuración canónica; balance óptimo entre difusión y reinicio.             |
@@ -305,7 +385,11 @@ Se evaluó la recurrencia del Power Method con tolerancia de convergencia $\tau 
 #### Comprobación de la Tasa de Contracción Teórica:
 
 El número de iteraciones computadas satisface estrictamente la cota analítica esperada:
-$$k \approx \frac{\log(\tau)}{\log(\alpha)}$$
+
+$$
+k \approx \frac{\log(\tau)}{\log(\alpha)}
+$$
+
 Al variar $\alpha$ de 0.50 a 0.99, las iteraciones pasan de 24 a 128, lo que representa un incremento computacional del **533 %**. A valores muy cercanos a 1, el caminante aleatorio explora trayectorias de gran profundidad, provocando que subgrafos cerrados como el cultural acumulen la mayor densidad de probabilidad.
 
 ---
@@ -334,7 +418,7 @@ El guion ha sido planificado rigurosamente respetando la ventana reglamentaria d
 | **0:00 – 1:00**  | **Introducción y Pregunta**    | Título, integrantes y problema de ordenamiento en la Web. Pregunta de investigación, objetivos y alcance de la red de 20 páginas. <br>_Apoyo:_ Diapositiva institucional y gráfico conceptual del problema.                             |  **Luciana Carpio**  |
 | **1:00 – 2:00**  | **Modelado y Matriz $P$**      | Del grafo a la matriz estocástica $P$. Tratamiento formal de nodos sin salidas (_dangling nodes_). Parámetro $\alpha$ y vector de reinicio $v$. <br>_Apoyo:_ Visualización de la matriz $P$ y fórmulas estocásticas.                    |  **Sofía Briceño**   |
 | **2:00 – 3:00**  | **Tres Formulaciones**         | Demostración analítica de la equivalencia entre punto fijo, sistema lineal $(I - \alpha P)r = (1-\alpha)v$ y vector propio de la matriz Google $G$. Existencia y unicidad. <br>_Apoyo:_ Deducción algebraica en lámina clara.           |  **Sofía Briceño**   |
-| **3:00 – 4:00**  | **Convergencia y Cota**        | Análisis del factor de contracción $\alpha$, cota de error $\alpha^k$ y certificado formal mediante residuo $\|r - r^*\|_1 \le \frac{1}{1-\alpha} \|\delta\|_1$. <br>_Apoyo:_ Demostración de Neumann y esquema de contracción.         |  **Sofía Briceño**   |
+| **3:00 – 4:00**  | **Convergencia y Cota**        | Análisis del factor de contracción $\alpha$, cota de error $\alpha^k$ y certificado formal mediante residuo $\lVert r - r^{\ast} \rVert_1 \le \frac{1}{1-\alpha} \lVert \delta \rVert_1$. <br>_Apoyo:_ Demostración de Neumann y esquema de contracción.         |  **Sofía Briceño**   |
 | **4:00 – 5:30**  | **Verificación Experimental**  | Comprobación del ejemplo de 3 nodos del docente. Contraste numérico: método propio vs. sistema lineal vs. NetworkX. Estocasticidad y residuos. <br>_Apoyo:_ Tabla de convergencia y código Python en pantalla.                          | **Marianela Usnayo** |
 | **5:30 – 6:45**  | **Rankings y Personalización** | Conteo de enlaces recibidos vs. PageRank uniforme vs. personalizado (Tecnología y Deportes). Desempate analítico y evolución del Top 5. <br>_Apoyo:_ `fig6_barras_rankings.png` y mapas de red `fig2`, `fig3`, `fig4`.                  |  **Manuel Sialer**   |
 | **6:45 – 8:00**  | **Sensibilidad y Redes**       | Comportamiento con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$, número de iteraciones y _rank reversal_. Perturbaciones de enlaces y caso de _dangling node_. <br>_Apoyo:_ `fig5_convergencia_alpha.png`, `fig7_sensibilidad.png` y `fig8`. |  **Manuel Sialer**   |

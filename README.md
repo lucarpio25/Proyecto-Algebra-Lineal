@@ -92,7 +92,7 @@ Para evitar trampas de ciclo cerrado (*spider traps*) y componentes desconectada
 La distribución estacionaria $r \in \mathbb{R}^n$ satisface el balance de flujo:
 
 $$
-r = \alpha P r + (1 - \alpha) v, \quad r \ge \mathbf{0}, \quad \|r\|_1 = 1
+r = \alpha P r + (1 - \alpha) v, \quad r \ge \mathbf{0}, \quad \lVert r \rVert_1 = 1
 $$
 
 #### 2. Formulación de Sistema de Ecuaciones Lineales
@@ -105,7 +105,7 @@ $$
 
 **Teorema de Existencia y Unicidad:**
 
-Como la matriz $P$ es estocástica por columnas, su norma de matriz inducida cumple $\|P\|_1 = 1$ y su radio espectral satisface $\rho(P) \le 1$. Al ser $\alpha \in [0, 1)$, se cumple estrictamente:
+Como la matriz $P$ es estocástica por columnas, su norma de matriz inducida cumple $\lVert P \rVert_1 = 1$ y su radio espectral satisface $\rho(P) \le 1$. Al ser $\alpha \in [0, 1)$, se cumple estrictamente:
 
 $$
 \rho(\alpha P) = \alpha \rho(P) \le \alpha < 1
@@ -120,7 +120,7 @@ $$
 La serie converge absolutamente y la matriz no es singular. Por lo tanto, la solución **existe y es única**:
 
 $$
-r^* = (1 - \alpha) (I - \alpha P)^{-1} v
+r^{\ast} = (1 - \alpha) (I - \alpha P)^{-1} v
 $$
 
 #### 3. Formulación de Vector Propio (Matriz Google $G$)
@@ -147,22 +147,22 @@ $$
 
 #### Cota de Error $\alpha^k$:
 
-Restando el punto fijo exacto $r^* = \alpha P r^* + (1 - \alpha) v$:
+Restando el punto fijo exacto $r^{\ast} = \alpha P r^{\ast} + (1 - \alpha) v$:
 
 $$
-r^{(k+1)} - r^* = \alpha P (r^{(k)} - r^*)
+r^{(k+1)} - r^{\ast} = \alpha P (r^{(k)} - r^{\ast})
 $$
 
 Tomando la norma 1:
 
 $$
-\|r^{(k+1)} - r^*\|_1 \le \alpha \|P\|_1 \|r^{(k)} - r^*\|_1 = \alpha \|r^{(k)} - r^*\|_1
+\lVert r^{(k+1)} - r^{\ast} \rVert_1 \le \alpha \lVert P \rVert_1 \lVert r^{(k)} - r^{\ast} \rVert_1 = \alpha \lVert r^{(k)} - r^{\ast} \rVert_1
 $$
 
 Aplicando inducción matemática desde el paso $k = 0$:
 
 $$
-\|r^{(k+1)} - r^*\|_1 \le \alpha^k \|r^{(0)} - r^*\|_1
+\lVert r^{(k+1)} - r^{\ast} \rVert_1 \le \alpha^k \lVert r^{(0)} - r^{\ast} \rVert_1
 $$
 
 Dado que $0 \le \alpha < 1$, se cumple $\lim_{k \to \infty} \alpha^k = 0$, lo que demuestra la **convergencia lineal global**. El número de iteraciones necesarias escala como:
@@ -176,13 +176,13 @@ $$
 Evaluando el vector residual $\delta^{(k)} = (I - \alpha P) r^{(k)} - (1 - \alpha) v$:
 
 $$
-r^{(k)} - r^* = (I - \alpha P)^{-1} \delta^{(k)}
+r^{(k)} - r^{\ast} = (I - \alpha P)^{-1} \delta^{(k)}
 $$
 
 Aplicando normas:
 
 $$
-\|r^{(k)} - r^*\|_1 \le \|(I - \alpha P)^{-1}\|_1 \|\delta^{(k)}\|_1 \le \frac{1}{1 - \alpha} \|\delta^{(k)}\|_1
+\lVert r^{(k)} - r^{\ast} \rVert_1 \le \lVert (I - \alpha P)^{-1} \rVert_1 \lVert \delta^{(k)} \rVert_1 \le \frac{1}{1 - \alpha} \lVert \delta^{(k)} \rVert_1
 $$
 
 Para $\alpha = 0.85$, se tiene $\frac{1}{1-\alpha} \approx 6.67$. Un residuo medido menor que $10^{-11}$ certifica matemáticamente que la distancia a la solución exacta es inferior a $10^{-10}$.
@@ -334,7 +334,7 @@ $$
 
 ### 5.3. Convergencia y Sensibilidad al Parámetro $\alpha$ (Experimento E5)
 
-| $\alpha$ | Iteraciones | Residuo Final $\|\delta\|_1$ | Top 1 | Top 2 | Top 3 | Top 4 | Top 5 |
+| $\alpha$ | Iteraciones | Residuo Final $\lVert \delta \rVert_1$ | Top 1 | Top 2 | Top 3 | Top 4 | Top 5 |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **0.50** | **24** | $3.15 \times 10^{-11}$ | $T_1$ | $C_1$ | $D_1$ | $D_2$ | $T_3$ |
 | **0.85** | **65** | $6.13 \times 10^{-11}$ | $C_1$ | $T_1$ | $D_1$ | $C_3$ | $D_2$ |
@@ -363,7 +363,7 @@ Estructurado respetando la tolerancia de $10 \pm 1$ minutos:
 | **0:00 – 1:00** | **Problema y Pregunta** | Título, integrantes y motivación. Pregunta central, objetivo y alcance de la red de 20 páginas web. | **Luciana Carpio** |
 | **1:00 – 2:00** | **Formulación Matricial** | De la red a la matriz $P$, grado saliente, tratamiento estocástico de *dangling nodes*, parámetro $\alpha$ y reinicio $v$. | **Sofía Briceño** |
 | **2:00 – 3:00** | **Tres Formulaciones** | Equivalencia entre punto fijo, sistema lineal $(I-\alpha P)r = (1-\alpha)v$ y vector propio de $G$. Existencia y unicidad. | **Sofía Briceño** |
-| **3:00 – 4:00** | **Convergencia y Cota** | Factor de contracción $\alpha$, cota $\alpha^k$ y certificado formal mediante el residuo $\|r - r^*\|_1 \le \frac{1}{1-\alpha} \|\delta\|_1$. | **Sofía Briceño** |
+| **3:00 – 4:00** | **Convergencia y Cota** | Factor de contracción $\alpha$, cota $\alpha^k$ y certificado formal mediante el residuo $\lVert r - r^{\ast} \rVert_1 \le \frac{1}{1-\alpha} \lVert \delta \rVert_1$. | **Sofía Briceño** |
 | **4:00 – 5:30** | **Verificación Experimental** | Comprobación del ejemplo de 3 nodos, contraste iterativo vs. lineal vs. NetworkX, residuos y suma unitaria. | **Marianela Usnayo** |
 | **5:30 – 6:45** | **Rankings y Preferencias** | In-degree vs. PageRank uniforme vs. personalizado (Tech y Deportes). Desempate analítico y evolución del Top 5. | **Manuel Sialer** |
 | **6:45 – 8:00** | **Sensibilidad y Redes** | Pruebas con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$ (residuos/iteraciones). Perturbación de enlaces y caso de *dangling node*. | **Manuel Sialer** |
