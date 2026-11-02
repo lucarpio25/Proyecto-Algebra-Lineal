@@ -60,11 +60,14 @@ NODOS_CUL  = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6']
 # =====================================================================
 # Cada tupla (A, B) significa: la página A contiene un enlace hacia B.
 #
-# Reglas aplicadas:
+# Reglas de la red base:
+#   - 20 nodos y 56 enlaces dirigidos de igual peso.
 #   - Cada nodo tiene entre 2 y 5 enlaces de salida.
-#   - ~65 % intra-categoría, ~35 % inter-categoría.
-#   - Los portales (T1, D1, C1) reciben la mayor cantidad de enlaces.
-#   - Hay enlaces cruzados para conectar las tres comunidades.
+#   - 47 enlaces dentro de categorías: aproximadamente 83.9 %.
+#   - 9 enlaces entre categorías: aproximadamente 16.1 %.
+#   - Los portales T1, D1 y C1 reciben 5 enlaces cada uno.
+#   - No hay autoenlaces, conexiones duplicadas ni nodos sin salida.
+#   - En E8 se eliminan las salidas de D6 para estudiar ese caso.
 
 ENLACES = [
     # ---- Tecnología ----
