@@ -277,50 +277,128 @@ def experimento_E3_E4(G, P):
     print("=" * 65)
 
     alpha = 0.85
+    tolerancia = 1e-10
     resultados = {}
+    comprobaciones = []
 
     for preferencia in ['tecnologia', 'deportes']:
         v = vector_reinicio_personalizado(preferencia)
         pers_nx = dict_personalizacion_nx(preferencia)
 
-        r_iter, iters, _ = pagerank_iterativo(P, alpha, v)
-        r_nx = pagerank_networkx(G, alpha, personalization=pers_nx)
+        # Calcular con los mismos parámetros por tres procedimientos.
+        r_iter, iters, _ = pagerank_iterativo(
+            P, alpha, v, tol=tolerancia
+        )
+        r_lin = pagerank_sistema_lineal(P, alpha, v)
+        r_nx = pagerank_networkx(
+            G, alpha, personalization=pers_nx
+        )
 
-        dif = np.linalg.norm(r_iter - r_nx, ord=1)
-        print(f"\n{'TECNOLOGÍA' if preferencia == 'tecnologia' else 'DEPORTES'}:")
-        print(f"  Iteraciones: {iters}")
-        print(f"  ||iterativo − NetworkX||₁ = {dif:.2e}")
+        print(f"\nPreferencia: {preferencia}")
+        print(f"  Iteraciones del método propio: {iters}")
+        print(
+            "  Diferencia iterativo–lineal: "
+            f"{np.linalg.norm(r_iter - r_lin, ord=1):.2e}"
+        )
+        print(
+            "  Diferencia iterativo–NetworkX: "
+            f"{np.linalg.norm(r_iter - r_nx, ord=1):.2e}"
+        )
 
-        verificar_resultado(r_iter, P, alpha, v,
-                            f"PR Personalizado ({preferencia})")
+        metodos = {
+            'Iterativo': r_iter,
+            'Sistema lineal': r_lin,
+            'NetworkX': r_nx,
+        }
+
+        for nombre, r in metodos.items():
+            residuo = np.linalg.norm(
+                r - alpha * (P @ r) - (1 - alpha) * v,
+                ord=1,
+            )
+            cota_error = residuo / (1 - alpha)
+
+            verificado = verificar_resultado(
+                r,
+                P,
+                alpha,
+                v,
+                nombre=f"{preferencia} – {nombre}",
+                tol=tolerancia,
+            )
+
+            comprobaciones.append({
+                'Preferencia': preferencia,
+                'Metodo': nombre,
+                'Suma': float(np.sum(r)),
+                'Minimo': float(np.min(r)),
+                'Residuo': float(residuo),
+                'Cota_error': float(cota_error),
+                'Tolerancia': tolerancia,
+                'Diferencia_con_lineal': float(
+                    np.linalg.norm(r - r_lin, ord=1)
+                ),
+                'Verificado': verificado,
+            })
 
         resultados[preferencia] = r_iter
 
-    # Tabla conjunta
+    # Guardar las seis comprobaciones: tres por preferencia.
+    df_verificaciones = pd.DataFrame(
+        comprobaciones
+    ).set_index(['Preferencia', 'Metodo'])
+
+    guardar_csv(
+        df_verificaciones,
+        'E3_E4_verificaciones.csv',
+    )
+
+    if not all(fila['Verificado'] for fila in comprobaciones):
+        raise RuntimeError(
+            "Algún procedimiento de E3–E4 no superó la verificación. "
+            "Revisar E3_E4_verificaciones.csv."
+        )
+
+    # Calcular la referencia uniforme para comparar rankings.
     v_uni = vector_reinicio_uniforme(len(NODOS_ORDEN))
-    r_uni, _, _ = pagerank_iterativo(P, alpha, v_uni)
+    r_uni, _, _ = pagerank_iterativo(
+        P, alpha, v_uni, tol=tolerancia
+    )
 
     df = pd.DataFrame({
         'Nodo': NODOS_ORDEN,
-        'Nombre': [NODOS_INFO[n]['nombre'] for n in NODOS_ORDEN],
-        'Categoría': [NODOS_INFO[n]['categoria'] for n in NODOS_ORDEN],
+        'Nombre': [
+            NODOS_INFO[nodo]['nombre']
+            for nodo in NODOS_ORDEN
+        ],
+        'Categoría': [
+            NODOS_INFO[nodo]['categoria']
+            for nodo in NODOS_ORDEN
+        ],
         'PR_Uniforme': r_uni,
         'PR_Tech': resultados['tecnologia'],
         'PR_Deportes': resultados['deportes'],
     }).set_index('Nodo')
 
-    # Agregar rankings
-    df['Rank_Uniforme']  = df['PR_Uniforme'].rank(ascending=False).astype(int)
-    df['Rank_Tech']      = df['PR_Tech'].rank(ascending=False).astype(int)
-    df['Rank_Deportes']  = df['PR_Deportes'].rank(ascending=False).astype(int)
+    # Las puntuaciones iguales comparten posición.
+    for puntuacion, ranking in [
+        ('PR_Uniforme', 'Rank_Uniforme'),
+        ('PR_Tech', 'Rank_Tech'),
+        ('PR_Deportes', 'Rank_Deportes'),
+    ]:
+        df[ranking] = df[puntuacion].rank(
+            ascending=False,
+            method='min',
+        ).astype(int)
 
     df = df.sort_values('PR_Uniforme', ascending=False)
-    print(f"\nComparación de rankings:")
+
+    print("\nComparación de rankings:")
     print(df.to_string(float_format='%.6f'))
+
     guardar_csv(df, 'E3_E4_personalizados.csv')
 
     return resultados
-
 
 # =====================================================================
 # E5. EFECTO DE α EN CONVERGENCIA
