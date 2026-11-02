@@ -121,50 +121,66 @@ def vector_reinicio_personalizado(preferencia, nodos=None):
 
 def pagerank_iterativo(P, alpha=0.85, v=None, tol=1e-10, max_iter=5000):
     """
-    Calcula el vector PageRank mediante iteraciones sucesivas.
+    Calcula PageRank mediante actualizaciones sucesivas.
 
-        r^{(k+1)} = α P r^{(k)} + (1 − α) v
+    tol representa la tolerancia del error en norma uno.
+    Se detiene cuando:
+        residuo / (1 - alpha) <= tol
 
-    Se detiene cuando  ||r^{(k+1)} − r^{(k)}||₁ < tol.
+    Devuelve:
+        r: aproximación final.
+        iteraciones: número de actualizaciones realizadas.
+        residuos: residuo de cada aproximación calculada.
 
-    Parameters
-    ----------
-    P     : np.ndarray  — Matriz de transición (n × n), estocástica por columnas.
-    alpha : float        — Parámetro de seguimiento de enlaces (damping factor).
-    v     : np.ndarray   — Vector de reinicio (n,). Si es None, se usa uniforme.
-    tol   : float        — Tolerancia para detener las iteraciones.
-    max_iter : int       — Máximo de iteraciones.
+    Si alcanza max_iter sin certificar la precisión, lanza un error.
 
-    Returns
-    -------
-    r           : np.ndarray  — Vector PageRank (n,).
-    iteraciones : int         — Número de iteraciones realizadas.
-    residuos    : list[float] — Residuo en cada iteración.
+    Se supone que P es estocástica por columnas y que v contiene
+    probabilidades no negativas que suman uno.
     """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha debe estar entre 0 y 1, sin incluirlos.")
+
+    if not np.isfinite(tol) or tol <= 0:
+        raise ValueError("tol debe ser positiva y finita.")
+
+    if not isinstance(max_iter, (int, np.integer)) or max_iter < 1:
+        raise ValueError("max_iter debe ser un entero positivo.")
+
     n = P.shape[0]
+
     if v is None:
         v = vector_reinicio_uniforme(n)
 
-    r = np.ones(n) / n  # vector inicial uniforme
+    # Puntuaciones iniciales uniformes.
+    r = np.ones(n) / n
     residuos = []
 
     for k in range(max_iter):
+        # Actualizar las puntuaciones.
         r_nuevo = alpha * (P @ r) + (1 - alpha) * v
 
-        # Residuo: ||r − αPr − (1−α)v||₁  evaluado en r_nuevo
+        # Calcular el residuo de la nueva aproximación.
         residuo = np.linalg.norm(
-            r_nuevo - alpha * (P @ r_nuevo) - (1 - alpha) * v, ord=1
+            r_nuevo - alpha * (P @ r_nuevo) - (1 - alpha) * v,
+            ord=1,
         )
-        residuos.append(residuo)
+        residuos.append(float(residuo))
 
-        # Criterio de parada
-        cambio = np.linalg.norm(r_nuevo - r, ord=1)
-        if cambio < tol:
+        # Calcular el límite del error respecto del equilibrio.
+        cota_error = residuo / (1 - alpha)
+
+        # Devolver exactamente el vector cuya precisión se comprobó.
+        if cota_error <= tol:
             return r_nuevo, k + 1, residuos
 
         r = r_nuevo
 
-    return r, max_iter, residuos
+    # No presentar una aproximación sin certificar como convergida.
+    raise RuntimeError(
+        f"No se certificó la tolerancia {tol:.2e} "
+        f"después de {max_iter} iteraciones. "
+        f"Última cota de error: {cota_error:.2e}."
+    )
 
 
 # =====================================================================
