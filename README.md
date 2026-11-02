@@ -4,20 +4,20 @@
 
 **Curso:** Álgebra Lineal (UP 26-2)  
 **Institución:** Universidad del Pacífico  
-**Docente:** Oswaldo Jose Velasquez Castañon
+**Docente:** Oswaldo Jose Velasquez Castañon  
 **Versión evaluada (Git Tag):** `avance-parcial` (Entrega Parcial) / `entrega-final` (Entrega Final)  
-**Enlace al video explicativo (10 min):** _[Próximamente disponible en Blackboard]_
+**Enlace al video explicativo (10 min):** *[Próximamente disponible en Blackboard]*
 
 ---
 
 ## Integrantes del Equipo
 
-| Nombre Completo                    | Rol Principal en el Proyecto                                                                                      |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **Sofía Catherine Briceño Rosado** | Fundamentación matemática, deducción analítica de formulaciones y demostración de convergencia.                   |
-| **Luciana Carpio Cárdenas**        | Planteamiento del problema, delimitación del alcance, mantenimiento del repositorio y documentación de la red.    |
-| **Manuel Sialer**                  | Diseño de la red de 20 nodos, implementación computacional, ejecución de experimentos y análisis de sensibilidad. |
-| **Marianela Usnayo Gutierrez**     | Control de calidad, verificaciones numéricas, comparación inter-algorítmica y edición audiovisual del video.      |
+| Nombre Completo | Rol Principal en el Proyecto |
+|---|---|
+| **Sofía Catherine Briceño Rosado** | Fundamentación matemática, deducción analítica de formulaciones y demostración de convergencia. |
+| **Luciana Carpio Cárdenas** | Planteamiento del problema, delimitación del alcance, mantenimiento del repositorio y documentación de la red. |
+| **Manuel Sialer** | Diseño de la red de 20 nodos, implementación computacional, ejecución de experimentos y análisis de sensibilidad. |
+| **Marianela Usnayo Gutierrez** | Control de calidad, verificaciones numéricas, comparación inter-algorítmica y edición audiovisual del video. |
 
 ---
 
@@ -25,16 +25,16 @@
 
 ### 1.1. Contexto y Problema
 
-En la World Wide Web, las páginas y sus hipervínculos conforman un grafo dirigido. La aproximación elemental para medir la relevancia de una página consiste en contar cuántos enlaces recibe (_in-degree_). No obstante, esta medida presenta limitaciones críticas:
+En la World Wide Web, las páginas y sus hipervínculos conforman un grafo dirigido. La aproximación elemental para medir la relevancia de una página consiste en contar cuántos enlaces recibe (*in-degree*). No obstante, esta medida presenta limitaciones críticas:
 
 1. **Ponderación uniforme ingenua:** Asume que todos los votos entrantes tienen idéntica autoridad, ignorando que un hipervínculo proveniente de un portal de alto prestigio debe conferir mayor credibilidad que enlaces de sitios periféricos.
 2. **Carencia de personalización temática:** Un ranking global único no contempla los intereses específicos del usuario (por ejemplo, alguien que navega buscando contenidos de tecnología frente a uno interesado en deportes).
 
-El algoritmo **PageRank** resuelve estas deficiencias modelando la navegación como una **cadena de Markov ergódica**, donde la importancia de una página se retroalimenta iterativamente de la relevancia de las páginas que la enlazan, ponderada inversamente por el número de enlaces de salida de estas. Asimismo, su variante **PageRank Personalizado** (_Personalized PageRank_ - PPR) permite sesgar el vector de reinicio para canalizar la relevancia hacia categorías temáticas de interés sin alterar la topología de la red.
+El algoritmo **PageRank** resuelve estas deficiencias modelando la navegación como una **cadena de Markov ergódica**, donde la importancia de una página se retroalimenta iterativamente de la relevancia de las páginas que la enlazan, ponderada inversamente por el número de enlaces de salida de estas. Asimismo, su variante **PageRank Personalizado** (*Personalized PageRank* - PPR) permite sesgar el vector de reinicio para canalizar la relevancia hacia categorías temáticas de interés sin alterar la topología de la red.
 
 ### 1.2. Pregunta de Investigación
 
-> _¿Cómo cambia la clasificación de relevancia de una red de páginas web al comparar el número de enlaces recibidos, PageRank uniforme y PageRank personalizado, y qué sensibilidad presenta ante cambios en las conexiones y en el parámetro de seguimiento de enlaces?_
+> *¿Cómo cambia la clasificación de relevancia de una red de páginas web al comparar el número de enlaces recibidos, PageRank uniforme y PageRank personalizado, y qué sensibilidad presenta ante cambios en las conexiones y en el parámetro de seguimiento de enlaces?*
 
 ### 1.3. Objetivo General
 
@@ -54,26 +54,34 @@ Implementar, verificar y analizar computacional y matemáticamente los algoritmo
 
 Sea una red representada por un grafo dirigido $G = (V, E)$ de $n$ vértices. Para cada nodo $j$ con conjunto de enlaces salientes $\text{Out}(j)$ y grado saliente $d_j^{\text{out}} = |\text{Out}(j)|$:
 
-$$P_{ij} = \begin{cases} \frac{1}{d_j^{\text{out}}} & \text{si } (j \to i) \in E \\ 0 & \text{en otro caso} \end{cases}$$
+$$
+P_{ij} = \begin{cases} \dfrac{1}{d_j^{\text{out}}} & \text{si } (j \to i) \in E \\ 0 & \text{en otro caso} \end{cases}
+$$
 
-#### Tratamiento de Nodos sin Salidas (_Dangling Nodes_)
+#### Tratamiento de Nodos sin Salidas (*Dangling Nodes*)
 
-Si una página no tiene enlaces salientes ($d_j^{\text{out}} = 0$), su columna sería nula, lo que provocaría que la suma de probabilidades decaiga a cero ($\|r^{(k)}\|_1 \to 0$). Para mantener la propiedad estocástica, se asume que un navegante que llega a un sumidero salta con igual probabilidad hacia cualquier página de la red:
+Si una página no tiene enlaces salientes ($d_j^{\text{out}} = 0$), su columna sería nula, lo que provocaría que la suma de probabilidades decaiga a cero. Para mantener la propiedad estocástica, se asume que un navegante que llega a un sumidero salta con igual probabilidad hacia cualquier página de la red:
 
-$$P_{ij} = \frac{1}{n} \quad \forall i \in \{1, \dots, n\} \quad \text{si } d_j^{\text{out}} = 0$$
+$$
+P_{ij} = \frac{1}{n} \quad \forall i \in \{1, \dots, n\} \quad \text{si } d_j^{\text{out}} = 0
+$$
 
-De este modo, $P \in \mathbb{R}^{n \times n}$ es una **matriz estocástica por columnas**: $\sum_{i=1}^{n} P_{ij} = 1$ para todo $j$.
+De este modo, $P \in \mathbb{R}^{n \times n}$ es una matriz estocástica por columnas:
+
+$$
+\sum_{i=1}^{n} P_{ij} = 1 \quad \forall j \in \{1, \dots, n\}
+$$
 
 ---
 
 ### 2.2. Parámetro de Amortiguamiento $\alpha$ y Vector de Reinicio $v$
 
-Para evitar trampas de ciclo cerrado (_spider traps_) y componentes desconectadas, se incorpora el modelo de teletransportación:
+Para evitar trampas de ciclo cerrado (*spider traps*) y componentes desconectadas, se incorpora el modelo de teletransportación:
 
 - Con probabilidad $\alpha \in (0, 1)$, el navegante sigue un enlace saliente.
-- Con probabilidad $(1 - \alpha)$, salta al azar según la distribución de un **vector de reinicio** $v \in \mathbb{R}^n$, con $v_i \ge 0$ y $\sum v_i = 1$.
+- Con probabilidad $(1 - \alpha)$, salta al azar según la distribución de un vector de reinicio $v \in \mathbb{R}^n$, con $v_i \ge 0$ y $\sum v_i = 1$.
 - **Uniforme:** $v = \frac{1}{n}\mathbf{1}$.
-- **Personalizado:** $v$ concentra probabilidad (e.g. 70 %) en un subconjunto de nodos temáticos.
+- **Personalizado:** $v$ concentra probabilidad (por ejemplo, 70 %) en un subconjunto de nodos temáticos.
 
 ---
 
@@ -82,48 +90,102 @@ Para evitar trampas de ciclo cerrado (_spider traps_) y componentes desconectada
 #### 1. Formulación de Punto Fijo (Forma Iterativa)
 
 La distribución estacionaria $r \in \mathbb{R}^n$ satisface el balance de flujo:
-$$r = \alpha P r + (1 - \alpha) v, \quad r \ge \mathbf{0}, \quad \|r\|_1 = 1$$
+
+$$
+r = \alpha P r + (1 - \alpha) v, \quad r \ge \mathbf{0}, \quad \|r\|_1 = 1
+$$
 
 #### 2. Formulación de Sistema de Ecuaciones Lineales
 
 Reordenando los términos algebraicamente:
-$$(I - \alpha P) r = (1 - \alpha) v$$
+
+$$
+(I - \alpha P) r = (1 - \alpha) v
+$$
 
 **Teorema de Existencia y Unicidad:**
-Como $P$ es estocástica por columnas, $\|P\|_1 = 1$ y su radio espectral cumple $\rho(P) \le 1$. Al ser $\alpha \in [0, 1)$, se cumple $\rho(\alpha P) \le \alpha < 1$. Por el teorema de las series de Neumann:
-$$(I - \alpha P)^{-1} = \sum_{m=0}^{\infty} (\alpha P)^m$$
-La serie converge absolutamente y $(I - \alpha P)$ es invertible. Por lo tanto, la solución **existe y es única**:
-$$r^* = (1 - \alpha) (I - \alpha P)^{-1} v$$
+
+Como la matriz $P$ es estocástica por columnas, su norma de matriz inducida cumple $\|P\|_1 = 1$ y su radio espectral satisface $\rho(P) \le 1$. Al ser $\alpha \in [0, 1)$, se cumple estrictamente:
+
+$$
+\rho(\alpha P) = \alpha \rho(P) \le \alpha < 1
+$$
+
+Por el teorema de las series de Neumann, la matriz $(I - \alpha P)$ es invertible y su inversa se expresa como la serie geométrica convergente:
+
+$$
+(I - \alpha P)^{-1} = \sum_{m=0}^{\infty} (\alpha P)^m
+$$
+
+La serie converge absolutamente y la matriz no es singular. Por lo tanto, la solución **existe y es única**:
+
+$$
+r^* = (1 - \alpha) (I - \alpha P)^{-1} v
+$$
 
 #### 3. Formulación de Vector Propio (Matriz Google $G$)
 
-Como $\mathbf{1}^T r = 1$, expresamos $(1 - \alpha) v = (1 - \alpha) v \mathbf{1}^T r$. Sustituyendo:
-$$r = \left( \alpha P + (1 - \alpha) v \mathbf{1}^T \right) r = G r$$
+Dado que $\mathbf{1}^T r = 1$, expresamos $(1 - \alpha) v = (1 - \alpha) v \mathbf{1}^T r$. Al sustituir en la ecuación de punto fijo:
 
-Donde $G = \alpha P + (1 - \alpha) v \mathbf{1}^T$ es la **Matriz Google**. Así, $r$ es el **vector propio dominante** de $G$ asociado al valor propio $\lambda = 1$.  
-Por el **Teorema de Perron-Frobenius**, al ser $G$ positiva y primitiva, $\lambda_1 = 1$ es un valor propio simple y estrictamente dominante ($|\lambda_j| < 1$ para $j \ge 2$), garantizando un vector propio estacionario estrictamente positivo ($r_i > 0$).
+$$
+r = \left( \alpha P + (1 - \alpha) v \mathbf{1}^T \right) r = G r
+$$
+
+Donde $G = \alpha P + (1 - \alpha) v \mathbf{1}^T$ es la **Matriz Google**. Así, $r$ es el vector propio dominante de $G$ asociado al valor propio $\lambda = 1$.
+
+Por el **Teorema de Perron-Frobenius**, al ser $G$ positiva y primitiva, $\lambda_1 = 1$ es un valor propio simple y estrictamente mayor en módulo que cualquier otro valor propio ($|\lambda_j| < 1$ para $j \ge 2$), garantizando un vector propio estacionario con todas sus entradas estrictamente positivas ($r_i > 0$).
 
 ---
 
-### 2.4. Convergencia del Método Iterativo (_Power Method_)
+### 2.4. Convergencia del Método Iterativo (*Power Method*)
 
-El esquema de iteraciones sucesivas:
-$$r^{(k+1)} = \alpha P r^{(k)} + (1 - \alpha) v$$
+El cómputo sucesivo se define por la relación de recurrencia:
+
+$$
+r^{(k+1)} = \alpha P r^{(k)} + (1 - \alpha) v
+$$
 
 #### Cota de Error $\alpha^k$:
 
-Restando el punto fijo $r^* = \alpha P r^* + (1 - \alpha) v$:
-$$r^{(k+1)} - r^* = \alpha P (r^{(k)} - r^*)$$
-$$\|r^{(k+1)} - r^*\|_1 \le \alpha \|P\|_1 \|r^{(k)} - r^*\|_1 = \alpha \|r^{(k)} - r^*\|_1$$
-$$\implies \|r^{(k)} - r^*\|_1 \le \alpha^k \|r^{(0)} - r^*\|_1$$
-Como $\alpha < 1$, $\alpha^k \to 0$ linealmente a una tasa gobernada por $\alpha$. El número de iteraciones escala como $k \approx \frac{\log(\tau)}{\log(\alpha)}$.
+Restando el punto fijo exacto $r^* = \alpha P r^* + (1 - \alpha) v$:
+
+$$
+r^{(k+1)} - r^* = \alpha P (r^{(k)} - r^*)
+$$
+
+Tomando la norma 1:
+
+$$
+\|r^{(k+1)} - r^*\|_1 \le \alpha \|P\|_1 \|r^{(k)} - r^*\|_1 = \alpha \|r^{(k)} - r^*\|_1
+$$
+
+Aplicando inducción matemática desde el paso $k = 0$:
+
+$$
+\|r^{(k+1)} - r^*\|_1 \le \alpha^k \|r^{(0)} - r^*\|_1
+$$
+
+Dado que $0 \le \alpha < 1$, se cumple $\lim_{k \to \infty} \alpha^k = 0$, lo que demuestra la **convergencia lineal global**. El número de iteraciones necesarias escala como:
+
+$$
+k \approx \frac{\log(\tau)}{\log(\alpha)}
+$$
 
 #### Certificado de Error a través del Residuo:
 
 Evaluando el vector residual $\delta^{(k)} = (I - \alpha P) r^{(k)} - (1 - \alpha) v$:
-$$r^{(k)} - r^* = (I - \alpha P)^{-1} \delta^{(k)}$$
-$$\|r^{(k)} - r^*\|_1 \le \|(I - \alpha P)^{-1}\|_1 \|\delta^{(k)}\|_1 \le \frac{1}{1 - \alpha} \|\delta^{(k)}\|_1$$
-Para $\alpha = 0.85$, $\frac{1}{1-\alpha} \approx 6.67$. Un residuo menor que $10^{-11}$ garantiza formalmente que la distancia a la solución exacta es inferior a $10^{-10}$.
+
+$$
+r^{(k)} - r^* = (I - \alpha P)^{-1} \delta^{(k)}
+$$
+
+Aplicando normas:
+
+$$
+\|r^{(k)} - r^*\|_1 \le \|(I - \alpha P)^{-1}\|_1 \|\delta^{(k)}\|_1 \le \frac{1}{1 - \alpha} \|\delta^{(k)}\|_1
+$$
+
+Para $\alpha = 0.85$, se tiene $\frac{1}{1-\alpha} \approx 6.67$. Un residuo medido menor que $10^{-11}$ certifica matemáticamente que la distancia a la solución exacta es inferior a $10^{-10}$.
 
 ---
 
@@ -172,8 +234,8 @@ El proyecto está diseñado para ser reproducido desde cualquier terminal con Py
 ### Paso 1: Clonar el repositorio
 
 ```bash
-git clone https://github.com/[usuario]/proyecto-pagerank-algebra.git
-cd proyecto-pagerank-algebra
+git clone https://github.com/lucarpio25/Proyecto-Algebra-Lineal.git
+cd Proyecto-Algebra-Lineal
 ```
 
 ### Paso 2: Crear y activar entorno virtual (recomendado)
@@ -198,7 +260,7 @@ pip install -r requirements.txt
 python codigo/ejecutar_experimentos.py
 ```
 
-_Salida:_ Verifica el ejemplo de 3 nodos, ejecuta experimentos E1 a E8, valida residuos numéricos ($< 10^{-10}$) y exporta los archivos CSV a `resultados/`.
+*Salida:* Verifica el ejemplo de 3 nodos, ejecuta experimentos E1 a E8, valida residuos numéricos ($< 10^{-10}$) y exporta los archivos CSV a `resultados/`.
 
 ### Paso 5: Generar todas las visualizaciones
 
@@ -206,7 +268,7 @@ _Salida:_ Verifica el ejemplo de 3 nodos, ejecuta experimentos E1 a E8, valida r
 python codigo/generar_visualizaciones.py
 ```
 
-_Salida:_ Genera las 8 figuras científicas en formato PNG dentro de `figuras/`.
+*Salida:* Genera las 8 figuras científicas en formato PNG dentro de `figuras/`.
 
 ---
 
@@ -216,11 +278,20 @@ _Salida:_ Genera las 8 figuras científicas en formato PNG dentro de `figuras/`.
 
 Se reprodujo el ejemplo exacto propuesto por el docente (Prof. Oswaldo Velásquez) en la Sección 6 de la guía de cátedra: aristas $1 \to 2$, $2 \to 1$, $2 \to 3$ y $3 \to 1$ con $\alpha = 1/2$.
 
-$$\text{Matriz de transición:} \quad P = \begin{pmatrix} 0 & 1/2 & 1 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{pmatrix}$$
+Matriz de transición estocástica:
+
+$$
+P = \begin{pmatrix} 0 & 1/2 & 1 \\ 1 & 0 & 0 \\ 0 & 1/2 & 0 \end{pmatrix}
+$$
 
 #### Caso 1: Reinicio Uniforme ($v = \frac{1}{3}\mathbf{1}$)
 
-- **Solución analítica exacta:** $r = \frac{1}{39} (15, 14, 10)^T \approx [0.384615, 0.358974, 0.256410]^T$
+- **Solución analítica exacta:**
+
+$$
+r = \frac{1}{39} \begin{pmatrix} 15 \\ 14 \\ 10 \end{pmatrix} \approx \begin{pmatrix} 0.384615 \\ 0.358974 \\ 0.256410 \end{pmatrix}
+$$
+
 - **Power Method (propio):** $[0.384615, 0.358974, 0.256410]^T$
 - **Sistema Lineal $(I - \alpha P)^{-1}b$:** $[0.384615, 0.358974, 0.256410]^T$
 - **NetworkX:** $[0.384615, 0.358974, 0.256410]^T$
@@ -228,25 +299,30 @@ $$\text{Matriz de transición:} \quad P = \begin{pmatrix} 0 & 1/2 & 1 \\ 1 & 0 &
 
 #### Caso 2: Reinicio Personalizado en Nodo 3 ($v = e_3 = (0, 0, 1)^T$)
 
-- **Solución analítica exacta:** $r = \frac{1}{13} (4, 2, 7)^T \approx [0.307692, 0.153846, 0.538462]^T$
+- **Solución analítica exacta:**
+
+$$
+r = \frac{1}{13} \begin{pmatrix} 4 \\ 2 \\ 7 \end{pmatrix} \approx \begin{pmatrix} 0.307692 \\ 0.153846 \\ 0.538462 \end{pmatrix}
+$$
+
 - **Power Method (propio):** $[0.307692, 0.153846, 0.538462]^T$
 - **Sistema Lineal:** $[0.307692, 0.153846, 0.538462]^T$
 - **NetworkX:** $[0.307692, 0.153846, 0.538462]^T$
 - **Discrepancia frente a solución teórica exacta:** $9.33 \times 10^{-14}$ (residuo: $1.14 \times 10^{-13}$).
 
-_Ambos casos verifican estocasticidad estricta ($\sum r_i = 1.000000000000$) y no negatividad._
+*Ambos casos verifican estocasticidad estricta ($\sum r_i = 1.000000000000$) y no negatividad.*
 
 ---
 
 ### 5.2. Comparación de Rankings Top 5 (Red de 20 Nodos)
 
 | Posición | In-Degree (Conteo Bruto) | PageRank Uniforme ($\alpha = 0.85$) | PR Tech ($70\%$ reinicio) | PR Deportes ($70\%$ reinicio) |
-| :------: | :----------------------: | :---------------------------------: | :-----------------------: | :---------------------------: |
-|  **1**   |    $T_1$ (5 enlaces)     |         **$C_1$ (0.0914)**          |    **$T_1$ (0.1174)**     |      **$D_1$ (0.1015)**       |
-|  **2**   |    $D_1$ (5 enlaces)     |           $T_1$ (0.0828)            |      $T_3$ (0.0842)       |        $D_2$ (0.0936)         |
-|  **3**   |    $C_1$ (5 enlaces)     |           $D_1$ (0.0692)            |      $T_6$ (0.0779)       |        $C_1$ (0.0708)         |
-|  **4**   |    $T_3$ (4 enlaces)     |         **$C_3$ (0.0686)**          |      $C_1$ (0.0722)       |        $T_1$ (0.0698)         |
-|  **5**   |    $D_2$ (4 enlaces)     |           $D_2$ (0.0631)            |      $T_5$ (0.0674)       |        $D_7$ (0.0678)         |
+|:---:|:---:|:---:|:---:|:---:|
+| **1** | $T_1$ (5 enlaces) | **$C_1$ (0.0914)** | **$T_1$ (0.1174)** | **$D_1$ (0.1015)** |
+| **2** | $D_1$ (5 enlaces) | $T_1$ (0.0828) | $T_3$ (0.0842) | $D_2$ (0.0936) |
+| **3** | $C_1$ (5 enlaces) | $D_1$ (0.0692) | $T_6$ (0.0779) | $C_1$ (0.0708) |
+| **4** | $T_3$ (4 enlaces) | **$C_3$ (0.0686)** | $C_1$ (0.0722) | $T_1$ (0.0698) |
+| **5** | $D_2$ (4 enlaces) | $D_2$ (0.0631) | $T_5$ (0.0674) | $D_7$ (0.0678) |
 
 #### Hallazgos Clave:
 
@@ -259,14 +335,14 @@ _Ambos casos verifican estocasticidad estricta ($\sum r_i = 1.000000000000$) y n
 ### 5.3. Convergencia y Sensibilidad al Parámetro $\alpha$ (Experimento E5)
 
 | $\alpha$ | Iteraciones | Residuo Final $\|\delta\|_1$ | Top 1 | Top 2 | Top 3 | Top 4 | Top 5 |
-| :------: | :---------: | :--------------------------: | :---: | :---: | :---: | :---: | :---: |
-| **0.50** |   **24**    |    $3.15 \times 10^{-11}$    | $T_1$ | $C_1$ | $D_1$ | $D_2$ | $T_3$ |
-| **0.85** |   **65**    |    $6.13 \times 10^{-11}$    | $C_1$ | $T_1$ | $D_1$ | $C_3$ | $D_2$ |
-| **0.95** |   **101**   |    $8.06 \times 10^{-11}$    | $C_1$ | $T_1$ | $C_3$ | $D_1$ | $D_2$ |
-| **0.99** |   **128**   |    $8.23 \times 10^{-11}$    | $C_1$ | $C_3$ | $T_1$ | $D_1$ | $C_6$ |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **0.50** | **24** | $3.15 \times 10^{-11}$ | $T_1$ | $C_1$ | $D_1$ | $D_2$ | $T_3$ |
+| **0.85** | **65** | $6.13 \times 10^{-11}$ | $C_1$ | $T_1$ | $D_1$ | $C_3$ | $D_2$ |
+| **0.95** | **101** | $8.06 \times 10^{-11}$ | $C_1$ | $T_1$ | $C_3$ | $D_1$ | $D_2$ |
+| **0.99** | **128** | $8.23 \times 10^{-11}$ | $C_1$ | $C_3$ | $T_1$ | $D_1$ | $C_6$ |
 
 - Al aumentar $\alpha$ de 0.50 a 0.99, las iteraciones se incrementan en un **533 %** (de 24 a 128), concordando con la cota de contracción $\alpha^k$.
-- Se manifiesta el fenómeno de **inversión de rangos (_rank reversal_)**: a $\alpha=0.50$, $T_1$ lidera; a $\alpha \ge 0.85$, $C_1$ asume el primer puesto; y a $\alpha=0.99$, $C_3$ salta al segundo lugar y $C_6$ ingresa al Top 5.
+- Se manifiesta el fenómeno de **inversión de rangos (*rank reversal*)**: a $\alpha=0.50$, $T_1$ lidera; a $\alpha \ge 0.85$, $C_1$ asume el primer puesto; y a $\alpha=0.99$, $C_3$ salta al segundo lugar y $C_6$ ingresa al Top 5.
 
 ---
 
@@ -282,40 +358,40 @@ _Ambos casos verifican estocasticidad estricta ($\sum r_i = 1.000000000000$) y n
 
 Estructurado respetando la tolerancia de $10 \pm 1$ minutos:
 
-|      Tiempo      | Sección                       | Contenido Específico                                                                                                                          |     Responsable      |
-| :--------------: | :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :------------------: |
-| **0:00 – 1:00**  | **Problema y Pregunta**       | Título, integrantes y motivación. Pregunta central, objetivo y alcance de la red de 20 páginas web.                                           |  **Luciana Carpio**  |
-| **1:00 – 2:00**  | **Formulación Matricial**     | De la red a la matriz $P$, grado saliente, tratamiento estocástico de _dangling nodes_, parámetro $\alpha$ y reinicio $v$.                    |  **Sofía Briceño**   |
-| **2:00 – 3:00**  | **Tres Formulaciones**        | Equivalencia entre punto fijo, sistema lineal $(I-\alpha P)r = (1-\alpha)v$ y vector propio de $G$. Existencia y unicidad.                    |  **Sofía Briceño**   |
-| **3:00 – 4:00**  | **Convergencia y Cota**       | Factor de contracción $\alpha$, cota $\alpha^k$ y certificado formal mediante el residuo $\|r - r^*\|_1 \le \frac{1}{1-\alpha} \|\delta\|_1$. |  **Sofía Briceño**   |
-| **4:00 – 5:30**  | **Verificación Experimental** | Comprobación del ejemplo de 3 nodos, contraste iterativo vs. lineal vs. NetworkX, residuos y suma unitaria.                                   | **Marianela Usnayo** |
-| **5:30 – 6:45**  | **Rankings y Preferencias**   | In-degree vs. PageRank uniforme vs. personalizado (Tech y Deportes). Desempate analítico y evolución del Top 5.                               |  **Manuel Sialer**   |
-| **6:45 – 8:00**  | **Sensibilidad y Redes**      | Pruebas con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$ (residuos/iteraciones). Perturbación de enlaces y caso de _dangling node_.                |  **Manuel Sialer**   |
-| **8:00 – 9:00**  | **Interpretación Teórica**    | Significado de la distribución estacionaria. Cuándo coinciden y difieren las métricas. Limitaciones del modelo.                               | **Marianela Usnayo** |
-| **9:00 – 10:00** | **Conclusiones y Cierre**     | Síntesis de resultados, advertencia no semántica, enlace al repositorio de GitHub y créditos.                                                 |  **Luciana Carpio**  |
+| Tiempo | Sección | Contenido Específico | Responsable |
+|:---:|:---|:---|:---:|
+| **0:00 – 1:00** | **Problema y Pregunta** | Título, integrantes y motivación. Pregunta central, objetivo y alcance de la red de 20 páginas web. | **Luciana Carpio** |
+| **1:00 – 2:00** | **Formulación Matricial** | De la red a la matriz $P$, grado saliente, tratamiento estocástico de *dangling nodes*, parámetro $\alpha$ y reinicio $v$. | **Sofía Briceño** |
+| **2:00 – 3:00** | **Tres Formulaciones** | Equivalencia entre punto fijo, sistema lineal $(I-\alpha P)r = (1-\alpha)v$ y vector propio de $G$. Existencia y unicidad. | **Sofía Briceño** |
+| **3:00 – 4:00** | **Convergencia y Cota** | Factor de contracción $\alpha$, cota $\alpha^k$ y certificado formal mediante el residuo $\|r - r^*\|_1 \le \frac{1}{1-\alpha} \|\delta\|_1$. | **Sofía Briceño** |
+| **4:00 – 5:30** | **Verificación Experimental** | Comprobación del ejemplo de 3 nodos, contraste iterativo vs. lineal vs. NetworkX, residuos y suma unitaria. | **Marianela Usnayo** |
+| **5:30 – 6:45** | **Rankings y Preferencias** | In-degree vs. PageRank uniforme vs. personalizado (Tech y Deportes). Desempate analítico y evolución del Top 5. | **Manuel Sialer** |
+| **6:45 – 8:00** | **Sensibilidad y Redes** | Pruebas con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$ (residuos/iteraciones). Perturbación de enlaces y caso de *dangling node*. | **Manuel Sialer** |
+| **8:00 – 9:00** | **Interpretación Teórica** | Significado de la distribución estacionaria. Cuándo coinciden y difieren las métricas. Limitaciones del modelo. | **Marianela Usnayo** |
+| **9:00 – 10:00** | **Conclusiones y Cierre** | Síntesis de resultados, advertencia no semántica, enlace al repositorio de GitHub y créditos. | **Luciana Carpio** |
 
 ---
 
 ## 7. Registro de Contribuciones Individuales
 
-| Integrante                         | Tareas Específicas Realizadas                                                                                                                                                                                                                                                                                                           | Evidencias en Repositorio                                            |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Sofía Catherine Briceño Rosado** | • Deducción analítica de las tres formulaciones matemáticas.<br>• Demostración de existencia y unicidad mediante serie de Neumann.<br>• Formulación de la cota de contracción $\alpha^k$ y certificado del residuo.<br>• Redacción de la fundamentación matemática del informe.                                                         | Sección 2 del `README.md`.                                           |
-| **Luciana Carpio Cárdenas**        | • Planteamiento del problema, pregunta de investigación y alcance.<br>• Estructuración del repositorio, archivo `.gitignore` y dependencias.<br>• Documentación de las reglas de construcción de la red junto a Manuel.<br>• Redacción de introducción y conclusiones del proyecto.                                                     | Secciones 1 y 3 del `README.md`; `datos/reglas_red.md`.              |
-| **Manuel Sialer**                  | • Construcción formal del grafo de 20 nodos y matriz de transición $P$.<br>• Programación de `red_definicion.py`, `pagerank_core.py`, `ejecutar_experimentos.py`.<br>• Ejecución automatizada de los experimentos E1 a E8 y exportación de CSVs.<br>• Desarrollo del script de visualización científica (`generar_visualizaciones.py`). | Scripts en `codigo/`, datos en `resultados/`, figuras en `figuras/`. |
-| **Marianela Usnayo Gutierrez**     | • Validación cruzada con el ejemplo de 3 nodos del docente.<br>• Control de calidad de los datos (suma de componentes, no negatividad, residuo $< 10^{-10}$).<br>• Comparación numérica sistemática contra NetworkX y solución lineal.<br>• Planificación y estructuración temporal del guion audiovisual.                              | Tablas de verificación en `resultados/`; Sección 6 del `README.md`.  |
+| Integrante | Tareas Específicas Realizadas | Evidencias en Repositorio |
+|---|---|---|
+| **Sofía Catherine Briceño Rosado** | • Deducción analítica de las tres formulaciones matemáticas.<br>• Demostración de existencia y unicidad mediante serie de Neumann.<br>• Formulación de la cota de contracción $\alpha^k$ y certificado del residuo.<br>• Redacción de la fundamentación matemática del informe. | Sección 2 del `README.md`. |
+| **Luciana Carpio Cárdenas** | • Planteamiento del problema, pregunta de investigación y alcance.<br>• Estructuración del repositorio, archivo `.gitignore` y dependencias.<br>• Documentación de las reglas de construcción de la red junto a Manuel.<br>• Redacción de introducción y conclusiones del proyecto. | Secciones 1 y 3 del `README.md`; `datos/reglas_red.md`. |
+| **Manuel Sialer** | • Construcción formal del grafo de 20 nodos y matriz de transición $P$.<br>• Programación de `red_definicion.py`, `pagerank_core.py`, `ejecutar_experimentos.py`.<br>• Ejecución automatizada de los experimentos E1 a E8 y exportación de CSVs.<br>• Desarrollo del script de visualización científica (`generar_visualizaciones.py`). | Scripts en `codigo/`, datos en `resultados/`, figuras en `figuras/`. |
+| **Marianela Usnayo Gutierrez** | • Validación cruzada con el ejemplo de 3 nodos del docente.<br>• Control de calidad de los datos (suma de componentes, no negatividad, residuo $< 10^{-10}$).<br>• Comparación numérica sistemática contra NetworkX y solución lineal.<br>• Planificación y estructuración temporal del guion audiovisual. | Tablas de verificación en `resultados/`; Sección 6 del `README.md`. |
 
 ---
 
 ## 8. Cronograma de Actividades Pendientes (Entrega Final)
 
-|    Semana     | Actividad                                                                                              |      Responsable      | Entregable                                            |
-| :-----------: | ------------------------------------------------------------------------------------------------------ | :-------------------: | ----------------------------------------------------- |
-| **Semana 13** | Grabación individual de los bloques de audio y video según el guion estructurado.                      | Todos los integrantes | Tomas audiovisuales individuales limpias.             |
-| **Semana 13** | Edición y ensamble audiovisual del video de 10 minutos (verificación de duración 9–11 min).            |   Marianela Usnayo    | Primer corte del video en plataforma (YouTube/Drive). |
-| **Semana 14** | Incorporación de retroalimentación docente recibida en la Entrega Parcial.                             |    Sofía y Luciana    | Repositorio actualizado.                              |
-| **Semana 14** | Ensayo y simulacro interno de la Ronda de Preguntas Individual.                                        |    Todo el equipo     | Dominio de respuestas a variaciones teóricas.         |
-| **Semana 14** | Generación de la etiqueta Git `entrega-final`, colocación del enlace al video y entrega en Blackboard. |    Luciana Carpio     | Entrega formal completada.                            |
+| Semana | Actividad | Responsable | Entregable |
+|:---:|---|:---:|---|
+| **Semana 13** | Grabación individual de los bloques de audio y video según el guion estructurado. | Todos los integrantes | Tomas audiovisuales individuales limpias. |
+| **Semana 13** | Edición y ensamble audiovisual del video de 10 minutos (verificación de duración 9–11 min). | Marianela Usnayo | Primer corte del video en plataforma (YouTube/Drive). |
+| **Semana 14** | Incorporación de retroalimentación docente recibida en la Entrega Parcial. | Sofía y Luciana | Repositorio actualizado. |
+| **Semana 14** | Ensayo y simulacro interno de la Ronda de Preguntas Individual. | Todo el equipo | Dominio de respuestas a variaciones teóricas. |
+| **Semana 14** | Generación de la etiqueta Git `entrega-final`, colocación del enlace al video y entrega en Blackboard. | Luciana Carpio | Entrega formal completada. |
 
 ---
 
@@ -324,7 +400,7 @@ Estructurado respetando la tolerancia de $10 \pm 1$ minutos:
 En estricto cumplimiento del numeral 9 de las indicaciones del curso:
 
 - **Herramientas empleadas:** Antigravity (Google DeepMind) con modelos Claude Opus 4.6 y Gemini Flash.
-- **Finalidad:** Apoyo en la correción y automatización de la sintaxis de scripts en Python (estructuración de bucles de graficación con Matplotlib), formato de tablas en Markdown y corrección de estilo de la documentación.
+- **Finalidad:** Apoyo en la corrección y automatización de la sintaxis de scripts en Python (estructuración de bucles de graficación con Matplotlib), formato de tablas en Markdown y corrección de estilo de la documentación.
 - **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Los resultados numéricos satisfacen estrictamente los criterios de estocasticidad ($\sum r_i = 1$) y residuos de máquina ($< 10^{-10}$). Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
 
 ---
