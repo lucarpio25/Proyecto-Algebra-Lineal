@@ -426,20 +426,21 @@ $$
 
 | Actividades | S12 L | S12 Ma | S12 Mi | S12 J | S12 V | S12 S | S12 D | S13 L | S13 Ma | S13 Mi | S13 J | S13 V | S13 S | S13 D | S14 L | S14 Ma | S14 Mi | S14 J | S14 V | S14 S | S14 D |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Planificación |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Planteamiento del proyecto y GitHub |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Conceptos matemáticos y fuentes |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Diseño de la red y experimentos |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Planificación del video |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Reproducir ejemplo de 3 nodos y verificarlo (sustitución, suma) | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Construir red de 20 nodos, documentar procedencia y reglas | ■ | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-| Implementación propia: P, iteración, residuo y comparación con NetworkX |   |   | ■ | ■ | ■ | ■ |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |
-| Experimentos con α ∈ {0.50, 0.85, 0.95, 0.99}: residuo, iteraciones, top 5 |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |
-| Sensibilidad: añadir/quitar aristas, caso con nodo sin salidas |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |
-| Tabla reproducible, README y orden del repositorio |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |   |   |   |   |
-| Guión del video (10 min) y reparto de intervenciones |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ |   |   |   |   |   |   |   |   |
-| Grabación y edición del video; enlace en README |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |
-| Revisión final y entrega |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ |
+| Planificación | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Planteamiento del proyecto y GitHub |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Conceptos matemáticos y fuentes |   |   |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Diseño de la red y experimentos |   |   |   |   |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Planificación del video |   |   |   |   |   |   | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Reproducir ejemplo de 3 nodos y verificarlo (sustitución, suma) |   |   |   |   |   |   |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |
+| Construir red de 20 nodos, documentar procedencia y reglas |   |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |   |
+| Implementación propia: P, iteración, residuo y comparación con NetworkX |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |   |   |   |   |   |
+| Experimentos con α ∈ {0.50, 0.85, 0.95, 0.99}: residuo, iteraciones, top 5 |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |
+| Sensibilidad: añadir/quitar aristas, caso con nodo sin salidas |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |
+| Tabla reproducible, README y orden del repositorio |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |
+| Guión del video (10 min) y reparto de intervenciones |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ |   |   |   |   |
+| Grabación y edición del video; enlace en README |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ |   |   |   |
+| Revisión final y entrega |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ |
+
 
 ---
 
