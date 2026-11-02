@@ -165,41 +165,103 @@ def experimento_E2(G, P):
     print("=" * 65)
 
     alpha = 0.85
+    tolerancia = 1e-10
     n = len(NODOS_ORDEN)
     v = vector_reinicio_uniforme(n)
 
-    # Tres métodos
-    r_iter, iters, residuos = pagerank_iterativo(P, alpha, v)
+    # Calcular PageRank por los tres procedimientos.
+    r_iter, iters, residuos = pagerank_iterativo(
+        P, alpha, v, tol=tolerancia
+    )
     r_lin = pagerank_sistema_lineal(P, alpha, v)
-    r_nx  = pagerank_networkx(G, alpha)
+    r_nx = pagerank_networkx(G, alpha)
 
-    print(f"\nIteraciones del Power Method: {iters}")
+    print(f"\nIteraciones del método propio: {iters}")
 
-    # Comparar los tres
+    # Comparar las puntuaciones obtenidas.
     dif_iter_lin = np.linalg.norm(r_iter - r_lin, ord=1)
-    dif_iter_nx  = np.linalg.norm(r_iter - r_nx, ord=1)
-    dif_lin_nx   = np.linalg.norm(r_lin - r_nx, ord=1)
+    dif_iter_nx = np.linalg.norm(r_iter - r_nx, ord=1)
+    dif_lin_nx = np.linalg.norm(r_lin - r_nx, ord=1)
+
     print(f"||iterativo − lineal||₁   = {dif_iter_lin:.2e}")
     print(f"||iterativo − NetworkX||₁ = {dif_iter_nx:.2e}")
     print(f"||lineal − NetworkX||₁    = {dif_lin_nx:.2e}")
 
-    # Verificar
-    verificar_resultado(r_iter, P, alpha, v, "PR Uniforme – Iterativo")
-    verificar_resultado(r_lin, P, alpha, v, "PR Uniforme – Sistema Lineal")
+    # Verificar cada resultado con la misma ecuación y tolerancia.
+    metodos = {
+        'Iterativo': r_iter,
+        'Sistema lineal': r_lin,
+        'NetworkX': r_nx,
+    }
 
-    # Tabla
+    comprobaciones = []
+
+    for nombre, r in metodos.items():
+        residuo = np.linalg.norm(
+            r - alpha * (P @ r) - (1 - alpha) * v,
+            ord=1,
+        )
+        cota_error = residuo / (1 - alpha)
+
+        verificado = verificar_resultado(
+            r,
+            P,
+            alpha,
+            v,
+            nombre=f"PR uniforme – {nombre}",
+            tol=tolerancia,
+        )
+
+        comprobaciones.append({
+            'Metodo': nombre,
+            'Suma': float(np.sum(r)),
+            'Minimo': float(np.min(r)),
+            'Residuo': float(residuo),
+            'Cota_error': float(cota_error),
+            'Tolerancia': tolerancia,
+            'Diferencia_con_lineal': float(
+                np.linalg.norm(r - r_lin, ord=1)
+            ),
+            'Verificado': verificado,
+        })
+
+    # Guardar las comprobaciones en una tabla independiente.
+    df_verificaciones = pd.DataFrame(
+        comprobaciones
+    ).set_index('Metodo')
+
+    guardar_csv(
+        df_verificaciones,
+        'E2_verificaciones.csv',
+    )
+
+    if not all(fila['Verificado'] for fila in comprobaciones):
+        raise RuntimeError(
+            "Algún procedimiento de E2 no superó la verificación. "
+            "Revisar E2_verificaciones.csv."
+        )
+
+    # Conservar la tabla de puntuaciones que utilizan los gráficos.
     df = pd.DataFrame({
         'Nodo': NODOS_ORDEN,
-        'Nombre': [NODOS_INFO[n]['nombre'] for n in NODOS_ORDEN],
-        'Categoría': [NODOS_INFO[n]['categoria'] for n in NODOS_ORDEN],
+        'Nombre': [
+            NODOS_INFO[nodo]['nombre']
+            for nodo in NODOS_ORDEN
+        ],
+        'Categoría': [
+            NODOS_INFO[nodo]['categoria']
+            for nodo in NODOS_ORDEN
+        ],
         'PR_Iterativo': r_iter,
         'PR_Lineal': r_lin,
         'PR_NetworkX': r_nx,
     }).set_index('Nodo')
 
     df = df.sort_values('PR_Iterativo', ascending=False)
-    print(f"\nRanking PageRank Uniforme (α = {alpha}):")
+
+    print(f"\nRanking PageRank uniforme (α = {alpha}):")
     print(df.to_string(float_format='%.6f'))
+
     guardar_csv(df, 'E2_pagerank_uniforme.csv')
 
     return r_iter, residuos
