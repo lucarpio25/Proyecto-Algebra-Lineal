@@ -270,6 +270,8 @@ def experimento_E5(P):
     print("=" * 65)
 
     alphas = [0.50, 0.85, 0.95, 0.99]
+    tolerancia = 1e-10
+
     n = len(NODOS_ORDEN)
     v = vector_reinicio_uniforme(n)
 
@@ -277,25 +279,55 @@ def experimento_E5(P):
     filas = []
 
     for alpha in alphas:
-        r, iters, residuos = pagerank_iterativo(P, alpha, v)
+        r, iters, residuos = pagerank_iterativo(
+            P,
+            alpha=alpha,
+            v=v,
+            tol=tolerancia,
+        )
 
-        # Top 5
+        residuo_final = residuos[-1]
+        cota_error = residuo_final / (1 - alpha)
+
+        # Comparación con la solución directa del sistema.
+        r_lineal = pagerank_sistema_lineal(P, alpha, v)
+        diferencia_lineal = np.linalg.norm(r - r_lineal, ord=1)
+
         indices_top5 = np.argsort(-r)[:5]
-        top5 = [(NODOS_ORDEN[i], f"{r[i]:.6f}") for i in indices_top5]
-
-        residuo_final = residuos[-1] if residuos else float('nan')
+        top5 = [
+            (NODOS_ORDEN[i], f"{r[i]:.6f}")
+            for i in indices_top5
+        ]
 
         print(f"\nα = {alpha}:")
-        print(f"  Iteraciones : {iters}")
+        print(f"  Iteraciones: {iters}")
         print(f"  Residuo final: {residuo_final:.2e}")
+        print(f"  Cota del error: {cota_error:.2e}")
+        print(f"  Tolerancia: {tolerancia:.2e}")
+        print(f"  Diferencia con solución directa: {diferencia_lineal:.2e}")
         print(f"  Top 5: {[t[0] for t in top5]}")
 
-        verificar_resultado(r, P, alpha, v, f"α = {alpha}")
+        verificado = verificar_resultado(
+            r,
+            P,
+            alpha,
+            v,
+            nombre=f"α = {alpha}",
+            tol=tolerancia,
+        )
+
+        if not verificado:
+            raise RuntimeError(
+                f"La verificación falló para alpha = {alpha}."
+            )
 
         resultados_alpha[alpha] = {
             'r': r,
             'iteraciones': iters,
             'residuo_final': residuo_final,
+            'cota_error': cota_error,
+            'tolerancia': tolerancia,
+            'diferencia_lineal': diferencia_lineal,
             'residuos': residuos,
             'top5': top5,
         }
@@ -304,6 +336,10 @@ def experimento_E5(P):
             'alpha': alpha,
             'iteraciones': iters,
             'residuo_final': residuo_final,
+            'cota_error': cota_error,
+            'tolerancia': tolerancia,
+            'diferencia_lineal': diferencia_lineal,
+            'verificado': verificado,
             'top_1': top5[0][0],
             'top_2': top5[1][0],
             'top_3': top5[2][0],
@@ -312,12 +348,13 @@ def experimento_E5(P):
         })
 
     df = pd.DataFrame(filas).set_index('alpha')
-    print(f"\nResumen de convergencia por α:")
+
+    print("\nResumen de convergencia por α:")
     print(df.to_string())
+
     guardar_csv(df, 'E5_convergencia_alpha.csv')
 
     return resultados_alpha
-
 
 # =====================================================================
 # E6, E7, E8. SENSIBILIDAD A CAMBIOS DE ENLACES
