@@ -43,7 +43,7 @@ El algoritmo **PageRank**, formulado originalmente por Sergey Brin y Larry Page 
 
 ### 1.2. Pregunta de Investigación
 
-> _¿De qué manera varía la jerarquización de relevancia en una red dirigida de 20 páginas web al contrastar el conteo de enlaces entrantes (in-degree), PageRank uniforme y PageRank personalizado, y qué sensibilidad exhiben las puntuaciones, el Top 5 y la tasa de convergencia ante alteraciones en el factor de amortiguamiento $\alpha$ y modificaciones en la topología de la red?_
+> _¿De qué manera varía la jerarquización de relevancia en una red dirigida de 20 páginas web al contrastar el conteo de enlaces entrantes (in-degree), PageRank uniforme y PageRank personalizado, y qué sensibilidad exhiben las puntuaciones, el Top 5 y la tasa de convergencia ante alteraciones en el factor de amortiguamiento α y modificaciones en la topología de la red?_
 
 ### 1.3. Objetivo General
 
