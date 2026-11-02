@@ -356,42 +356,90 @@ $$
 
 ## 6. Guion del Video Final (10 Minutos)
 
-Estructurado respetando la tolerancia de $10 \pm 1$ minutos:
-
-| Tiempo | Sección | Contenido Específico | Responsable |
-|:---:|:---|:---|:---:|
-| **0:00 – 1:00** | **Problema y Pregunta** | Título, integrantes y motivación. Pregunta central, objetivo y alcance de la red de 20 páginas web. | **Luciana Carpio** |
-| **1:00 – 2:00** | **Formulación Matricial** | De la red a la matriz $P$, grado saliente, tratamiento estocástico de *dangling nodes*, parámetro $\alpha$ y reinicio $v$. | **Sofía Briceño** |
-| **2:00 – 3:00** | **Tres Formulaciones** | Equivalencia entre punto fijo, sistema lineal $(I-\alpha P)r = (1-\alpha)v$ y vector propio de $G$. Existencia y unicidad. | **Sofía Briceño** |
-| **3:00 – 4:00** | **Convergencia y Cota** | Factor de contracción $\alpha$, cota $\alpha^k$ y certificado formal mediante el residuo $\lVert r - r^{\ast} \rVert_1 \le \frac{1}{1-\alpha} \lVert \delta \rVert_1$. | **Sofía Briceño** |
-| **4:00 – 5:30** | **Verificación Experimental** | Comprobación del ejemplo de 3 nodos, contraste iterativo vs. lineal vs. NetworkX, residuos y suma unitaria. | **Marianela Usnayo** |
-| **5:30 – 6:45** | **Rankings y Preferencias** | In-degree vs. PageRank uniforme vs. personalizado (Tech y Deportes). Desempate analítico y evolución del Top 5. | **Manuel Sialer** |
-| **6:45 – 8:00** | **Sensibilidad y Redes** | Pruebas con $\alpha \in \{0.50, 0.85, 0.95, 0.99\}$ (residuos/iteraciones). Perturbación de enlaces y caso de *dangling node*. | **Manuel Sialer** |
-| **8:00 – 9:00** | **Interpretación Teórica** | Significado de la distribución estacionaria. Cuándo coinciden y difieren las métricas. Limitaciones del modelo. | **Marianela Usnayo** |
-| **9:00 – 10:00** | **Conclusiones y Cierre** | Síntesis de resultados, advertencia no semántica, enlace al repositorio de GitHub y créditos. | **Luciana Carpio** |
+| Tiempo | Sección | Contenido | Responsable |
+|---|---|---|---|
+| 0:00 – 1:00 | Pregunta | Título, integrantes y problema. Pregunta de investigación, objetivo y alcance (red simulada de 20 páginas). | Luciana |
+| 1:00 – 2:00 | Formulación | De la red a la matriz de transición P,, tratamiento de nodos sin salidas, reinicio v y parámetro α. | Sofía |
+| 2:00 – 3:00 | Formulación | Ecuación r = αPr + (1−α)v, existencia y unicidad, y las tres formulaciones (sistema lineal, vector propio, punto fijo). | Sofía |
+| 3:00 – 4:00 | Convergencia | Contracción, cota de error αᵏ y certificado de error con el residuo (1/(1−α)). | Sofía |
+| 4:00 – 5:30 | Experimentos: verificación | Comprobación del ejemplo de tres nodos, comparación de la implementación propia con la solución directa y NetworkX, residuo y suma de componentes. | Marianela |
+| 5:30 – 6:45 | Experimentos: rankings | Enlaces recibidos vs. PageRank uniforme vs. personalizado (tecnología y deportes), cambios en el top 5. | Manuel |
+| 6:45 – 8:00 | Experimentos: sensibilidad | α ∈ {0.50, 0.85, 0.95, 0.99}: residuo e iteraciones. Modificación de enlaces y caso con una página sin salidas. | Manuel |
+| 8:00 – 9:00 | Interpretación | Qué noción de relevancia produce cada clasificación y cuándo coinciden o difieren. | Marianela |
+| 9:00 – 10:00 | Límites y cierre | Límites, conclusiones, referencias principales y enlace al repositorio. | Luciana |
 
 ---
 
 ## 7. Registro de Contribuciones Individuales
 
-| Integrante | Tareas Específicas Realizadas | Evidencias en Repositorio |
-|---|---|---|
-| **Sofía Catherine Briceño Rosado** | • Deducción analítica de las tres formulaciones matemáticas.<br>• Demostración de existencia y unicidad mediante serie de Neumann.<br>• Formulación de la cota de contracción $\alpha^k$ y certificado del residuo.<br>• Redacción de la fundamentación matemática del informe. | Sección 2 del `README.md`. |
-| **Luciana Carpio Cárdenas** | • Planteamiento del problema, pregunta de investigación y alcance.<br>• Estructuración del repositorio, archivo `.gitignore` y dependencias.<br>• Documentación de las reglas de construcción de la red junto a Manuel.<br>• Redacción de introducción y conclusiones del proyecto. | Secciones 1 y 3 del `README.md`; `datos/reglas_red.md`. |
-| **Manuel Sialer** | • Construcción formal del grafo de 20 nodos y matriz de transición $P$.<br>• Programación de `red_definicion.py`, `pagerank_core.py`, `ejecutar_experimentos.py`.<br>• Ejecución automatizada de los experimentos E1 a E8 y exportación de CSVs.<br>• Desarrollo del script de visualización científica (`generar_visualizaciones.py`). | Scripts en `codigo/`, datos en `resultados/`, figuras en `figuras/`. |
-| **Marianela Usnayo Gutierrez** | • Validación cruzada con el ejemplo de 3 nodos del docente.<br>• Control de calidad de los datos (suma de componentes, no negatividad, residuo $< 10^{-10}$).<br>• Comparación numérica sistemática contra NetworkX y solución lineal.<br>• Planificación y estructuración temporal del guion audiovisual. | Tablas de verificación en `resultados/`; Sección 6 del `README.md`. |
+### Marianela Usnayo Gutierrez
+
+- Verificar los resultados: sustitución en el ejemplo de tres nodos, suma de componentes igual a 1, no negatividad, residuo y cumplimiento de la tolerancia de error.
+- Comparar la implementación propia con la solución directa del sistema lineal y con NetworkX, cuidando que coincidan alfa, personalización, pesos y tratamiento de nodos sin salidas.
+- Probar que el repositorio sea reproducible: ejecutarlo desde cero y confirmar que las instrucciones del README permiten obtener los resultados presentados.
+- Revisar que las tablas y figuras coincidan con los resultados del código.
+- Coordinar la grabación y editar el video de 10 minutos, con fórmulas y gráficos legibles y audio comprensible.
+- Colocar el enlace del video en el README y comprobar que el docente pueda verlo.
+
+### Luciana Carpio Cárdenas
+
+- Crear el repositorio de GitHub y su estructura de carpetas.
+- Redactar y actualizar el README: título, tema, problema, objetivo, integrantes, organización de archivos, instrucciones de ejecución, resultados principales y enlace al video.
+- Mantener el planteamiento del problema, la pregunta de investigación, el objetivo y el alcance.
+- Documentar la procedencia de la red y las reglas de construcción junto con Manuel.
+- Implementar el algoritmo iterativo de PageRank en Python, incluyendo la construcción de la matriz de transición, el tratamiento uniforme de nodos sin salidas y los parámetros de reinicio y personalización.
+- Incorporar el cálculo del residuo, el certificado de error, el criterio de parada y el máximo de iteraciones.
+- Documentar el código y registrar las bibliotecas y versiones necesarias para ejecutarlo.
+
+### Manuel Sialer Flores
+
+- Construir la red simulada de 20 páginas sobre tecnología, deportes y cultura, y documentar sus reglas.
+- Preparar los datos de nodos y enlaces y definir las distribuciones de reinicio para las preferencias por tecnología y deportes.
+- Utilizar la implementación del grupo para calcular y comparar el conteo de enlaces recibidos, PageRank uniforme y las dos versiones personalizadas.
+- Ejecutar los experimentos con alfa = 0.50, 0.85, 0.95 y 0.99, registrando residuo, certificado de error, número de iteraciones y cambios en los cinco primeros lugares.
+- Modificar enlaces seleccionados, incluyendo un caso con una página sin enlaces de salida, y comparar cambios de puntuación y de orden.
+- Generar los gráficos de la red con tamaños de nodo proporcionales a las puntuaciones y las tablas reproducibles.
+
+### Sofía Catherine Briceño Rosado
+
+- Explicar la construcción de la matriz de transición y justificar la regla para nodos sin salidas.
+- Desarrollar la existencia y unicidad de la solución y las tres formulaciones: sistema lineal, vector propio e iteración de punto fijo.
+- Explicar la convergencia, la norma uno, el residuo y el certificado de error utilizado para detener el algoritmo.
+- Desarrollar el análisis teórico de sensibilidad respecto a la preferencia v y a cambios en P.
+- Revisar la correspondencia entre las fórmulas matemáticas y la implementación junto con Luciana.
+- Cuidar la notación, justificar los procedimientos e incorporar las citas y referencias en formato IEEE.
+
+### Actividades de todo el grupo
+
+- Reunirse para planificar, revisar el avance y actualizar el cronograma.
+- Preparar la presentación inicial y la entrega parcial, incorporando la retroalimentación.
+- Interpretar conjuntamente los resultados y formular conclusiones y limitaciones.
+- Preparar el guion y participar en el video explicando contenido sustantivo.
+- Registrar los aportes concretos de cada integrante y el uso de IA, cuando corresponda.
+- Revisar el repositorio y el video antes de entregar.
+- Comprender el funcionamiento general del código y los fundamentos matemáticos del proyecto.
+- Prepararse para la ronda de preguntas y revisar las seis preguntas de defensa del artículo.
 
 ---
 
 ## 8. Cronograma de Actividades Pendientes (Entrega Final)
 
-| Semana | Actividad | Responsable | Entregable |
-|:---:|---|:---:|---|
-| **Semana 13** | Grabación individual de los bloques de audio y video según el guion estructurado. | Todos los integrantes | Tomas audiovisuales individuales limpias. |
-| **Semana 13** | Edición y ensamble audiovisual del video de 10 minutos (verificación de duración 9–11 min). | Marianela Usnayo | Primer corte del video en plataforma (YouTube/Drive). |
-| **Semana 14** | Incorporación de retroalimentación docente recibida en la Entrega Parcial. | Sofía y Luciana | Repositorio actualizado. |
-| **Semana 14** | Ensayo y simulacro interno de la Ronda de Preguntas Individual. | Todo el equipo | Dominio de respuestas a variaciones teóricas. |
-| **Semana 14** | Generación de la etiqueta Git `entrega-final`, colocación del enlace al video y entrega en Blackboard. | Luciana Carpio | Entrega formal completada. |
+| Actividades | S12 L | S12 Ma | S12 Mi | S12 J | S12 V | S12 S | S12 D | S13 L | S13 Ma | S13 Mi | S13 J | S13 V | S13 S | S13 D | S14 L | S14 Ma | S14 Mi | S14 J | S14 V | S14 S | S14 D |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Planificación |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Planteamiento del proyecto y GitHub |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Conceptos matemáticos y fuentes |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Diseño de la red y experimentos |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Planificación del video |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Reproducir ejemplo de 3 nodos y verificarlo (sustitución, suma) | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Construir red de 20 nodos, documentar procedencia y reglas | ■ | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+| Implementación propia: P, iteración, residuo y comparación con NetworkX |   |   | ■ | ■ | ■ | ■ |   | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |   |
+| Experimentos con α ∈ {0.50, 0.85, 0.95, 0.99}: residuo, iteraciones, top 5 |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |   |   |
+| Sensibilidad: añadir/quitar aristas, caso con nodo sin salidas |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ |   |   |   |   |   |   |   |   |   |
+| Tabla reproducible, README y orden del repositorio |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |   |   |   |   |
+| Guión del video (10 min) y reparto de intervenciones |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ |   |   |   |   |   |   |   |   |
+| Grabación y edición del video; enlace en README |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ | ■ | ■ |   |   |   |
+| Revisión final y entrega |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | ■ | ■ |
 
 ---
 
