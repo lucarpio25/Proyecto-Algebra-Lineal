@@ -408,11 +408,13 @@ $$
 | **4** | $T_3$ (4 enlaces) | **$C_3$ (0.0686)** | $C_1$ (0.0722) | $T_1$ (0.0698) |
 | **5** | $D_2$ (4 enlaces) | $D_2$ (0.0631) | $T_5$ (0.0674) | $D_7$ (0.0678) |
 
-#### Hallazgos Clave:
+#### Hallazgos clave
 
-1. **Desempate de Portales:** A pesar de empatar con 5 enlaces recibidos, $C_1$ supera a $T_1$ y $D_1$ debido a que sus enlaces provienen de páginas con menor grado de salida (concentran su voto) y a la mayor densidad del subgrafo cultural.
-2. **Transferencia de Prestigio:** $C_3$, con solo 3 enlaces entrantes (puesto 7 en in-degree), asciende al 4.º lugar en PageRank uniforme porque recibe un enlace directo del líder $C_1$.
-3. **Personalización Temática:** Al concentrar el 70 % de reinicio en tecnología o deportes, los nodos correspondientes dominan el Top 5 respetando los caminos de la red.
+1. **Diferencias entre los portales:** C1, T1 y D1 reciben cinco enlaces cada uno, por lo que empatan en el conteo de enlaces recibidos. Sin embargo, PageRank uniforme coloca primero a C1, seguido de T1 y D1. Sus puntuaciones dependen de las puntuaciones de las páginas que los enlazan y de cómo estas las reparten entre sus enlaces de salida.
+
+2. **Importancia de las páginas de origen:** C3 recibe tres enlaces y está empatado con otras páginas en esa medida, pero alcanza el cuarto lugar en PageRank uniforme. Entre las páginas que lo enlazan está C1, cuya aportación contribuye al resultado junto con los demás enlaces recibidos y el reinicio.
+
+3. **Personalización temática:** Al repartir el 70 % de la probabilidad de reinicio entre las páginas de tecnología o deportes, cambia la clasificación. La preferencia por tecnología coloca cuatro páginas tecnológicas entre las primeras cinco; la preferencia por deportes coloca tres páginas deportivas. Las conexiones también permiten que páginas de otras categorías permanezcan en esos lugares.
 
 ---
 
