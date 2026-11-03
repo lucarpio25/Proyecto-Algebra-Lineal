@@ -17,7 +17,7 @@
 | Nombre Completo                    |  Código  | Responsabilidad Principal en la Entrega Parcial                                                                                                                             |
 | ---------------------------------- | :------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Sofía Catherine Briceño Rosado** | [Código] | Fundamentación matemática, deducción de las tres formulaciones, demostración de existencia, unicidad y convergencia analítica.                                              |
-| **Luciana Carpio Cárdenas**        | [Código] | Delimitación del problema, formulación de la pregunta de investigación, alcance, gobernanza del repositorio y documentación de procedencia de la red.                       |
+| **Luciana Carpio Cárdenas**        | 325728 | Delimitación del problema, formulación de la pregunta de investigación, alcance, gobernanza del repositorio y documentación de procedencia de la red.                       |
 | **Manuel Sialer**                  | [Código] | Diseño topológico de la red de 20 nodos, implementación computacional en Python, ejecución de la batería experimental (E1–E8) y generación de figuras.                      |
 | **Marianela Usnayo Gutierrez**     | [Código] | Verificaciones numéricas (residuos, estocasticidad, sumas unitarias), contraste inter-algorítmico (Iterativo vs. Lineal vs. NetworkX) y estructuración del guion del video. |
 
@@ -33,13 +33,11 @@ $$
 \text{deg}_{\text{in}}(i) = \sum_{j=1}^{n} A_{ij}
 $$
 
-No obstante, esta formulación presenta limitaciones teóricas insalvables:
+Sin embargo, contar enlaces no considera las puntuaciones de las páginas de origen ni cómo estas las reparten entre sus enlaces de salida. Además, el conteo no incorpora preferencias temáticas del usuario.
 
-1. **Ponderación uniforme ingenua:** Asume que todos los votos entrantes poseen idéntica autoridad, ignorando que un enlace proveniente de un portal altamente reconocido confiere mayor credibilidad que decenas de enlaces desde páginas marginales.
-2. **Vulnerabilidad a manipulación local:** Es fácilmente alterable mediante redes artificiales de enlaces (_link farms_).
-3. **Falta de contextualización temática:** Una clasificación universal no distingue los perfiles de interés del usuario (por ejemplo, búsquedas orientadas a computación frente a contenidos deportivos).
+PageRank considera estas relaciones para calcular la relevancia de cada página dentro de la red. Su variante personalizada permite modificar las probabilidades de reinicio para favorecer determinados temas.
 
-El algoritmo **PageRank**, formulado originalmente por Sergey Brin y Larry Page (1998), resuelve estas deficiencias modelando la navegación mediante una **cadena de Markov ergódica**, donde la relevancia de una página se retroalimenta iterativamente de la relevancia de las páginas que la enlazan, ponderada inversamente por el número de enlaces salientes de estas. Asimismo, su variante **PageRank Personalizado** (_Personalized PageRank_ - PPR) introduce un sesgo controlado en el vector de reinicio, permitiendo canalizar la autoridad hacia comunidades temáticas específicas.
+Estas puntuaciones describen la relevancia según la estructura de enlaces y las preferencias definidas. No garantizan la calidad o veracidad del contenido ni eliminan la posibilidad de manipulación mediante enlaces artificiales.
 
 ### 1.2. Pregunta de Investigación
 
@@ -53,7 +51,7 @@ Implementar, verificar y analizar computacional y matemáticamente los algoritmo
 
 1. Formular analíticamente la matriz de transición estocástica $P$ y formalizar la regla estocástica para nodos sin enlaces de salida (_dangling nodes_).
 2. Deducir y demostrar la equivalencia entre las tres formulaciones del problema: punto fijo iterativo, sistema de ecuaciones lineales no homogéneo $(I - \alpha P)r = (1-\alpha)v$ y vector propio dominante de la matriz Google $G$.
-3. Construir una implementación propia en Python basada en el método de las potencias (_Power Method_), validando su reproducibilidad con el ejemplo patrón de 3 nodos y contrastándola contra la inversión matricial exacta y `networkx.pagerank`.
+3. Construir una implementación propia en Python basada en actualizaciones iterativas, comprobarla con el ejemplo de tres nodos del docente y comparar sus resultados con la solución numérica directa del sistema lineal y con `networkx.pagerank`.
 4. Diseñar y ejecutar ocho experimentos numéricos (E1 a E8) para medir el impacto de la personalización temática, la tasa de contracción y el fenómeno de inversión de rangos (_rank reversal_).
 5. Cuantificar el residuo $\lVert r - \alpha P r - (1-\alpha)v \rVert_1$ como certificado riguroso de precisión numérica.
 
@@ -79,7 +77,7 @@ $$
 
 #### Tratamiento Riguroso de Nodos sin Salidas (_Dangling Nodes_)
 
-Si un nodo $j$ carece de enlaces salientes ($d_j^{\text{out}} = 0$), la columna $j$ de la matriz resultaría idénticamente nula ($\sum_{i=1}^n P_{ij} = 0$), quebrantando la propiedad estocástica y generando una disipación continua de probabilidad en el proceso markoviano ($\lVert r^{(k)} \rVert_1 \to 0$).
+Si un nodo j no tiene enlaces de salida, su columna en la matriz quedaría formada por ceros. En ese caso, la matriz dejaría de ser estocástica por columnas: al aplicar P a una distribución que asigne probabilidad positiva a ese nodo, la suma de las componentes sería menor que uno. Por ello, es necesario establecer una regla que redistribuya esa probabilidad.
 
 Para preservar la conservación de la probabilidad, se define formalmente la corrección estocástica: cuando el navegante arriba a un sumidero, salta con idéntica probabilidad hacia cualquier nodo de la red:
 
@@ -97,7 +95,7 @@ $$
 
 ### 2.2. Parámetro de Amortiguamiento $\alpha$ y Vector de Reinicio $v$
 
-Para garantizar la ergodicidad (irreducibilidad y aperiodicidad) de la cadena de Markov y resolver el problema de trampas cerradas (_spider traps_), se introduce el modelo del navegante aleatorio con teletransportación:
+Se incorpora un reinicio que permite continuar la navegación sin depender exclusivamente de los enlaces existentes. Si todas las componentes del vector de reinicio v son positivas, la matriz Google es positiva y la cadena de Markov es irreducible y aperiódica. Esta condición se cumple en las tres distribuciones de reinicio utilizadas en la red de 20 páginas.
 
 - Con probabilidad $\alpha \in (0, 1)$, el usuario sigue uno de los hipervínculos disponibles en la página actual.
 - Con probabilidad complementaria $(1 - \alpha)$, el usuario abandona la secuencia de navegación y se teletransporta hacia una página elegida según una distribución de probabilidad dada por el **vector de reinicio** $v \in \mathbb{R}^n$, donde:
@@ -189,8 +187,11 @@ $$
 G r = 1 \cdot r
 $$
 
-Esto demuestra que el vector de PageRank $r$ es el **vector propio dominante por la derecha** de la matriz estocástica y positiva $G$, asociado al valor propio $\lambda = 1$.  
-Dado que $G_{ij} = \alpha P_{ij} + (1 - \alpha) v_i > 0$ (para $v_i > 0$), la matriz $G$ es estrictamente positiva y primitiva. Conforme al **Teorema de Perron-Frobenius**, el valor propio $\lambda_1 = 1$ es simple, estrictamente mayor en módulo que cualquier otro valor propio ($|\lambda_j| < 1 \quad \forall j \ge 2$), y su vector propio asociado admite una normalización con todas sus componentes estrictamente positivas ($r_i > 0$).
+El vector PageRank es un vector propio por la derecha de la matriz Google G, asociado al valor propio uno y normalizado para que sus componentes sumen uno.
+
+Cuando todas las componentes de v son positivas, todas las entradas de G también son positivas. Por el teorema de Perron-Frobenius, el valor propio uno es simple, los demás valores propios tienen módulo menor que uno y el vector PageRank tiene componentes estrictamente positivas.
+
+Si v contiene ceros, la positividad de G no está garantizada. Sin embargo, la existencia y unicidad de PageRank siguen siendo válidas para una matriz P estocástica por columnas y un parámetro alfa entre cero y uno, como demuestra la formulación mediante el sistema lineal.
 
 ---
 
@@ -349,7 +350,7 @@ $$
 
 El script `ejecutar_experimentos.py` calcula ambos casos mediante el método iterativo, la solución directa del sistema lineal y NetworkX. Los resultados se contrastan con las soluciones exactas anteriores.
 
-Las verificaciones numéricas incluyen la diferencia respecto de la solución exacta, la suma de componentes, la no negatividad y el residuo. El número de iteraciones y las medidas de precisión se actualizarán al aplicar el criterio de parada definitivo.
+Las verificaciones numéricas incluyen la diferencia respecto de la solución exacta, la suma de componentes, la no negatividad y el residuo. Se utiliza el criterio de parada basado en el certificado de error: residuo dividido entre 1 − alfa menor o igual que la tolerancia establecida.
 
 ### 3.2. Topología de la red simulada de 20 nodos
 
@@ -404,16 +405,16 @@ Posición 6-10: C4 (3), C3 (3), T6 (3), D7 (3), T5 (3)
 
 Al incorporar la formulación matricial completa:
 
-| Ranking |   Nodo    | Nombre             | Categoría  | PageRank Uniforme | _In-Degree_ (Posición) |
+| Ranking |   Nodo    | Nombre             | Categoría  | PageRank Uniforme | Enlaces recibidos |
 | :-----: | :-------: | :----------------- | :--------- | :---------------: | :--------------------: |
-|  **1**  | **$C_1$** | Portal Cultura     | Cultura    |   **0.091400**    |         5 (#3)         |
-|  **2**  | **$T_1$** | Portal Tecnología  | Tecnología |   **0.082846**    |         5 (#1)         |
-|  **3**  | **$D_1$** | Portal Deportes    | Deportes   |   **0.069240**    |         5 (#2)         |
-|  **4**  | **$C_3$** | Cine               | Cultura    |   **0.068638**    |         3 (#7)         |
-|  **5**  | **$D_2$** | Fútbol             | Deportes   |   **0.063060**    |         4 (#5)         |
-|    6    |   $T_3$   | Reviews de Gadgets | Tecnología |     0.059617      |         4 (#4)         |
-|    7    |   $T_6$   | Programación       | Tecnología |     0.052272      |         3 (#8)         |
-|    8    |   $C_6$   | Teatro             | Cultura    |     0.050087      |        2 (#17)         |
+|  **1**  | **$C_1$** | Portal Cultura     | Cultura    |   **0.091400**    |         5         |
+|  **2**  | **$T_1$** | Portal Tecnología  | Tecnología |   **0.082846**    |         5         |
+|  **3**  | **$D_1$** | Portal Deportes    | Deportes   |   **0.069240**    |         5         |
+|  **4**  | **$C_3$** | Cine               | Cultura    |   **0.068638**    |         3         |
+|  **5**  | **$D_2$** | Fútbol             | Deportes   |   **0.063060**    |         4         |
+|    6    |   $T_3$   | Reviews de Gadgets | Tecnología |     0.059617      |         4         |
+|    7    |   $T_6$   | Programación       | Tecnología |     0.052272      |         3         |
+|    8    |   $C_6$   | Teatro             | Cultura    |     0.050087      |         2         |
 
 #### Justificación del desempate
 
@@ -563,7 +564,7 @@ Las demostraciones completas estarán disponibles en el informe. En el video se 
 
 ## 6. Registro de contribuciones individuales
 
-La siguiente tabla registra los aportes de cada integrante y señala los archivos donde pueden revisarse. Las verificaciones deberán actualizarse después de corregir el criterio de parada y repetir los experimentos.
+La siguiente tabla registra los aportes de cada integrante y señala los archivos donde pueden revisarse. Los resultados publicados corresponden a la ejecución realizada después de corregir el criterio de parada y repetir los experimentos.
 
 | Integrante | Contribuciones | Evidencias en el repositorio |
 |---|---|---|
@@ -604,9 +605,9 @@ El plan de trabajo restante cubre las semanas 13 y 14 de acuerdo con el calendar
 En estricto cumplimiento del numeral 9 de las indicaciones del curso:
 
 - **Herramientas empleadas:** Antigravity (Google DeepMind) con modelos Claude Opus 4.6 y Gemini Flash.
-- - **ChatGPT:** apoyo en la revisión de la coherencia entre el informe y el código, para identificar inconsistencias y proponer correcciones puntuales en la documentación. 
+- **ChatGPT:** apoyo en la revisión de la coherencia entre el informe y el código, para identificar inconsistencias y proponer correcciones puntuales en la documentación. 
 - **Finalidad:** Apoyo en la automatización de la sintaxis de scripts en Python (estructuración de bucles de graficación con Matplotlib), formato de tablas en Markdown y corrección de estilo de la documentación.
-- **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Los resultados numéricos satisfacen estrictamente los criterios de estocasticidad ($\sum r_i = 1$) y residuos de máquina ($< 10^{-10}$). Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
+- **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Las comprobaciones numéricas verifican que las puntuaciones sumen uno dentro de la tolerancia, que no presenten componentes negativas fuera del margen de redondeo y que el certificado de error no supere la tolerancia establecida. Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
 
 ---
 
