@@ -105,13 +105,10 @@ def fig_red_pagerank(G, scores_dict, titulo, nombre_archivo, pos=None):
 
     fig, ax = plt.subplots(figsize=(14, 10))
 
-    # Escalar tamaños: mínimo 300, máximo 3000
-    scores = np.array([scores_dict.get(n, 0.05) for n in G.nodes()])
-    min_s, max_s = scores.min(), scores.max()
-    if max_s > min_s:
-        tamaños = 300 + (scores - min_s) / (max_s - min_s) * 2700
-    else:
-        tamaños = np.full(len(scores), 800)
+    # Área de los nodos proporcional a PageRank.
+    # Se utiliza la misma escala para las tres variantes.
+    scores = np.array([scores_dict[n] for n in G.nodes()])
+    tamaños = 25000 * scores
 
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color='#bdc3c7',
                            arrows=True, arrowsize=12, width=0.8,
