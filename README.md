@@ -392,9 +392,9 @@ $$
 - **Power Method (propio):** $[0.307692, 0.153846, 0.538462]^T$
 - **Sistema Lineal:** $[0.307692, 0.153846, 0.538462]^T$
 - **NetworkX:** $[0.307692, 0.153846, 0.538462]^T$
-- **Discrepancia frente a solución teórica exacta:** $9.33 \times 10^{-14}$ (residuo: $1.14 \times 10^{-13}$).
+- **Diferencia en norma uno entre el método iterativo y la solución exacta:** aproximadamente 3.73 × 10⁻¹³ (residuo: 4.55 × 10⁻¹³).
 
-*Ambos casos verifican estocasticidad estricta ($\sum r_i = 1.000000000000$) y no negatividad.*
+* Ambos casos presentan puntuaciones no negativas cuya suma es uno dentro de la tolerancia numérica. *
 
 ---
 
@@ -458,7 +458,7 @@ Los datos completos están disponibles en `resultados/E5_convergencia_alpha.csv`
 | 0:00 – 1:00 | Pregunta | Título, integrantes y problema. Pregunta de investigación, objetivo y alcance (red simulada de 20 páginas). | Luciana |
 | 1:00 – 2:00 | Formulación | De la red a la matriz de transición P,, tratamiento de nodos sin salidas, reinicio v y parámetro α. | Sofía |
 | 2:00 – 3:00 | Formulación | Ecuación r = αPr + (1−α)v, existencia y unicidad, y las tres formulaciones (sistema lineal, vector propio, punto fijo). | Sofía |
-| 3:00 – 4:00 | Convergencia | Contracción, cota de error αᵏ y certificado de error con el residuo (1/(1−α)). | Sofía |
+| 3:00 – 4:00 | Convergencia | Contracción, cota de error αᵏ multiplicado por el error inicial en norma uno y certificado de error con el residuo (1/(1−α)). | Sofía |
 | 4:00 – 5:30 | Experimentos: verificación | Comprobación del ejemplo de tres nodos, comparación de la implementación propia con la solución directa y NetworkX, residuo y suma de componentes. | Marianela |
 | 5:30 – 6:45 | Experimentos: rankings | Enlaces recibidos vs. PageRank uniforme vs. personalizado (tecnología y deportes), cambios en el top 5. | Manuel |
 | 6:45 – 8:00 | Experimentos: sensibilidad | α ∈ {0.50, 0.85, 0.95, 0.99}: residuo e iteraciones. Modificación de enlaces y caso con una página sin salidas. | Manuel |
@@ -546,8 +546,9 @@ Los datos completos están disponibles en `resultados/E5_convergencia_alpha.csv`
 En estricto cumplimiento del numeral 9 de las indicaciones del curso:
 
 - **Herramientas empleadas:** Antigravity (Google DeepMind) con modelos Claude Opus 4.6 y Gemini Flash.
+- **ChatGPT:** apoyo en la revisión del código y la documentación, ejecución de comprobaciones numéricas y propuesta de correcciones.
 - **Finalidad:** Apoyo en la corrección y automatización de la sintaxis de scripts en Python (estructuración de bucles de graficación con Matplotlib), formato de tablas en Markdown y corrección de estilo de la documentación.
-- **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Los resultados numéricos satisfacen estrictamente los criterios de estocasticidad ($\sum r_i = 1$) y residuos de máquina ($< 10^{-10}$). Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
+- **Procedimientos de verificación:** Todos los procedimientos matemáticos fueron verificados analíticamente a mano y validados computacionalmente contra bibliotecas estándar (`numpy.linalg.solve`, `networkx.pagerank`). Los resultados numéricos satisfacen estrictamente los criterios de estocasticidad ($\sum r_i = 1$) y residuos inferiores a la tolerancia indicada ($< 10^{-10}$). Cada integrante del equipo comprende y asume la responsabilidad intelectual y académica total del contenido aquí presentado.
 
 ---
 
