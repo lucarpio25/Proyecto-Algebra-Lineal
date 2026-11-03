@@ -415,10 +415,11 @@ Al incorporar la formulación matricial completa:
 |    7    |   $T_6$   | Programación       | Tecnología |     0.052272      |         3 (#8)         |
 |    8    |   $C_6$   | Teatro             | Cultura    |     0.050087      |        2 (#17)         |
 
-#### Justificación del Desempate:
+#### Justificación del desempate
 
-1. **$C_1$ se posiciona en el primer lugar absoluto (0.0914):** A pesar de compartir 5 enlaces con $T_1$ y $D_1$, las páginas que apuntan a $C_1$ ($C_2, C_3, C_4, C_5, T_1$) presentan un menor grado de salida promedio, por lo que transfieren una mayor porción de su propio rango hacia $C_1$ ($C_3$ le transfiere el 50 % de su puntaje).
-2. **Efecto de Prestigio en $C_3$:** A pesar de haber recibido apenas 3 enlaces brutos (puesto 7 en in-degree), $C_3$ escala hasta la posición 4 global debido a que recibe un hipervínculo directo desde $C_1$, heredando la autoridad concentrada de dicho portal.
+1. **C1 ocupa el primer lugar:** Aunque C1, T1 y D1 reciben cinco enlaces cada uno, PageRank les asigna puntuaciones diferentes. Esto ocurre porque cada enlace aporta una cantidad que depende de la puntuación de la página de origen y de cuántos enlaces de salida tiene. Para calcular la puntuación de C1, se suman los aportes de T1, C2, C3, C4 y C5, multiplicados por alfa, y se añade el reinicio. En esta red, el resultado es aproximadamente 0.0914, superior al de T1 y D1.
+
+2. **C3 alcanza el cuarto lugar:** C3 recibe tres enlaces y está empatado con otras páginas en el conteo de enlaces recibidos. Sin embargo, alcanza una puntuación aproximada de 0.0686 en PageRank uniforme. Entre sus páginas de origen se encuentra C1, que tiene la mayor puntuación de la red. Este enlace contribuye al resultado de C3, junto con los demás enlaces recibidos y el reinicio.
 
 ---
 
