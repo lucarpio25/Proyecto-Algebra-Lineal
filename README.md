@@ -109,55 +109,97 @@ Para evitar trampas de ciclo cerrado (*spider traps*) y componentes desconectada
 
 ---
 
-### 2.3. Tres Formulaciones Algebraicas Equivalentes
+### 2.3. Tres formulaciones algebraicas equivalentes
 
-#### 1. Formulación de Punto Fijo (Forma Iterativa)
+PageRank puede expresarse como una ecuación de equilibrio, un sistema lineal o un problema de vectores propios. Las tres formulaciones describen las mismas puntuaciones finales.
 
-La distribución estacionaria $r \in \mathbb{R}^n$ satisface el balance de flujo:
+#### 1. Ecuación de equilibrio o punto fijo
 
-$$
-r = \alpha P r + (1 - \alpha) v, \quad r \ge \mathbf{0}, \quad \lVert r \rVert_1 = 1
-$$
-
-#### 2. Formulación de Sistema de Ecuaciones Lineales
-
-Reordenando los términos algebraicamente:
+El vector de puntuaciones r satisface:
 
 $$
-(I - \alpha P) r = (1 - \alpha) v
+r=\alpha Pr+(1-\alpha)v,
+\qquad
+r_i\geq 0,
+\qquad
+\sum_i r_i=1.
 $$
 
-**Teorema de Existencia y Unicidad:**
+El término alfa · Pr representa el seguimiento de enlaces y el término (1 − alfa) · v representa los reinicios.
 
-Como la matriz $P$ es estocástica por columnas, su norma de matriz inducida cumple $\lVert P \rVert_1 = 1$ y su radio espectral satisface $\rho(P) \le 1$. Al ser $\alpha \in [0, 1)$, se cumple estrictamente:
+En el equilibrio, aplicar nuevamente esta actualización produce las mismas puntuaciones.
 
-$$
-\rho(\alpha P) = \alpha \rho(P) \le \alpha < 1
-$$
+#### 2. Sistema de ecuaciones lineales
 
-Por el teorema de las series de Neumann, la matriz $(I - \alpha P)$ es invertible y su inversa se expresa como la serie geométrica convergente:
+Reorganizando la ecuación:
 
 $$
-(I - \alpha P)^{-1} = \sum_{m=0}^{\infty} (\alpha P)^m
+(I-\alpha P)r=(1-\alpha)v,
 $$
 
-La serie converge absolutamente y la matriz no es singular. Por lo tanto, la solución **existe y es única**:
+donde I es la matriz identidad.
+
+Las incógnitas son las puntuaciones de las páginas. En el código, el sistema se resuelve mediante `numpy.linalg.solve`, sin calcular explícitamente la inversa.
+
+**Existencia y unicidad**
+
+Como P es estocástica por columnas, su norma matricial inducida por la norma uno cumple:
 
 $$
-r^{\ast} = (1 - \alpha) (I - \alpha P)^{-1} v
+\|P\|_1=1.
 $$
 
-#### 3. Formulación de Vector Propio (Matriz Google $G$)
-
-Dado que $\mathbf{1}^T r = 1$, expresamos $(1 - \alpha) v = (1 - \alpha) v \mathbf{1}^T r$. Al sustituir en la ecuación de punto fijo:
+Por tanto:
 
 $$
-r = \left( \alpha P + (1 - \alpha) v \mathbf{1}^T \right) r = G r
+\|\alpha P\|_1=\alpha<1.
 $$
 
-Donde $G = \alpha P + (1 - \alpha) v \mathbf{1}^T$ es la **Matriz Google**. Así, $r$ es el vector propio dominante de $G$ asociado al valor propio $\lambda = 1$.
+Esta condición garantiza la convergencia de la serie geométrica de matrices, denominada serie de Neumann:
 
-Por el **Teorema de Perron-Frobenius**, al ser $G$ positiva y primitiva, $\lambda_1 = 1$ es un valor propio simple y estrictamente mayor en módulo que cualquier otro valor propio ($|\lambda_j| < 1$ para $j \ge 2$), garantizando un vector propio estacionario con todas sus entradas estrictamente positivas ($r_i > 0$).
+$$
+(I-\alpha P)^{-1}
+=
+\sum_{m=0}^{\infty}(\alpha P)^m.
+$$
+
+Así, I − alfa · P es invertible y el sistema tiene una única solución:
+
+$$
+r=(1-\alpha)(I-\alpha P)^{-1}v.
+$$
+
+La expresión con inversa es una identidad matemática; no es el procedimiento utilizado para calcular r en el código.
+
+Además, la serie muestra que r tiene componentes no negativas. Como cada vector P elevado a m multiplicado por v suma uno, las componentes de r también suman uno.
+
+#### 3. Vector propio de la matriz Google
+
+Se define la matriz Google:
+
+$$
+G=\alpha P+(1-\alpha)v\mathbf{1}^{T}.
+$$
+
+El símbolo de unos transpuesto representa un vector fila formado por unos. El producto de v por ese vector genera una matriz cuyas columnas son copias de v.
+
+Como las componentes de r suman uno:
+
+$$
+Gr=\alpha Pr+(1-\alpha)v=r.
+$$
+
+Por tanto, r es un vector propio de G asociado al valor propio uno, normalizado para que sus componentes sumen uno.
+
+Esta relación permite interpretar r como una distribución estacionaria: las probabilidades permanecen iguales después de aplicar las reglas de navegación.
+
+**Condición de positividad**
+
+Si todas las componentes de v son estrictamente positivas y alfa está entre cero y uno, todas las entradas de G son positivas. Esto ocurre en las tres variantes de la red de 20 páginas utilizadas en el proyecto.
+
+Bajo esa condición, el teorema de Perron-Frobenius garantiza que el valor propio uno es simple, que los demás valores propios tienen módulo menor que uno y que la distribución estacionaria tiene componentes estrictamente positivas.
+
+Si v contiene ceros, no se puede afirmar automáticamente que G sea positiva. Sin embargo, la existencia y unicidad de la solución de PageRank siguen garantizadas por la invertibilidad demostrada anteriormente. Esto permite tratar también el ejemplo del docente con reinicio concentrado en un solo nodo.
 
 ---
 
