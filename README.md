@@ -158,9 +158,7 @@ $$
 Esta condición garantiza la convergencia de la serie geométrica de matrices, denominada serie de Neumann:
 
 $$
-(I-\alpha P)^{-1}
-=
-\sum_{m=0}^{\infty}(\alpha P)^m.
+(I-\alpha P)^{-1} = \sum_{m=0}^{\infty}(\alpha P)^m.
 $$
 
 Así, I − alfa · P es invertible y el sistema tiene una única solución:
